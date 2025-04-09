@@ -7,7 +7,7 @@
   "bin": "dist/main.js",
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch src/main.ts"
+    "dev": "tsx watch --env-file=.env src/main.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.9.0",
