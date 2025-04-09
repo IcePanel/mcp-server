@@ -38,17 +38,45 @@ async function apiRequest(path: string, options: RequestInit = {}) {
 }
 
 /**
- * Get all models
+ * Get all landscapes
  */
-export async function getModels(organizationId: string) {
+export async function getLandscapes(organizationId: string) {
   return apiRequest(`/organizations/${organizationId}/landscapes`);
 }
 
 /**
- * Get a specific model
+ * Get a specific landscape
  */
-export async function getModel(organizationId: string, modelId: string) {
-  return apiRequest(`/organizations/${organizationId}/landscapes/${modelId}`);
+export async function getLandscape(organizationId: string, landscapeId: string) {
+  return apiRequest(`/organizations/${organizationId}/landscapes/${landscapeId}`);
+}
+
+/**
+ * Get all versions for a landscape
+ */
+export async function getVersions(landscapeId: string) {
+  return apiRequest(`/landscapes/${landscapeId}/versions`);
+}
+
+/**
+ * Get a specific version
+ */
+export async function getVersion(landscapeId: string, versionId: string) {
+  return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}`);
+}
+
+/**
+ * Get all model objects for a landscape version
+ */
+export async function getModelObjects(landscapeId: string, versionId: string) {
+  return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}/model/objects`);
+}
+
+/**
+ * Get a specific model object
+ */
+export async function getModelObject(landscapeId: string, versionId: string, modelObjectId: string) {
+  return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}/model/objects/${modelObjectId}`);
 }
 
 /**

@@ -19,16 +19,16 @@ const server = new McpServer({
   version: "1.0.0",
 });
 
-// Get all models
+// Get all landscapes
 server.tool(
-  "getModels",
-  "Get all models from IcePanel",
+  "getLandscapes",
+  "Get all landscapes from IcePanel",
   {},
   async () => {
     try {
-      const models = await icepanel.getModels(ORGANIZATION_ID!);
+      const landscapes = await icepanel.getLandscapes(ORGANIZATION_ID!);
       return {
-        content: [{ type: "text", text: JSON.stringify(models, null, 2) }],
+        content: [{ type: "text", text: JSON.stringify(landscapes, null, 2) }],
       };
     } catch (error) {
       return {
@@ -38,18 +38,61 @@ server.tool(
   }
 );
 
-// Get a specific model
+// Get a specific landscape
 server.tool(
-  "getModel",
-  "Get a specific model from IcePanel",
+  "getLandscape",
+  "Get a specific landscape from IcePanel",
   {
-    modelId: z.string(),
+    landscapeId: z.string(),
   },
-  async ({ modelId }) => {
+  async ({ landscapeId }) => {
     try {
-      const model = await icepanel.getModel(ORGANIZATION_ID!, modelId);
+      const landscape = await icepanel.getLandscape(ORGANIZATION_ID!, landscapeId);
       return {
-        content: [{ type: "text", text: JSON.stringify(model, null, 2) }],
+        content: [{ type: "text", text: JSON.stringify(landscape, null, 2) }],
+      };
+    } catch (error) {
+      return {
+        content: [{ type: "text", text: `Error: ${error.message}` }],
+      };
+    }
+  }
+);
+
+// Get all versions for a landscape
+server.tool(
+  "getVersions",
+  "Get all versions for a landscape",
+  {
+    landscapeId: z.string(),
+  },
+  async ({ landscapeId }) => {
+    try {
+      const versions = await icepanel.getVersions(landscapeId);
+      return {
+        content: [{ type: "text", text: JSON.stringify(versions, null, 2) }],
+      };
+    } catch (error) {
+      return {
+        content: [{ type: "text", text: `Error: ${error.message}` }],
+      };
+    }
+  }
+);
+
+// Get model objects for a landscape version
+server.tool(
+  "getModelObjects",
+  "Get all model objects for a landscape version",
+  {
+    landscapeId: z.string(),
+    versionId: z.string(),
+  },
+  async ({ landscapeId, versionId }) => {
+    try {
+      const modelObjects = await icepanel.getModelObjects(landscapeId, versionId);
+      return {
+        content: [{ type: "text", text: JSON.stringify(modelObjects, null, 2) }],
       };
     } catch (error) {
       return {
