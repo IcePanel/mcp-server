@@ -22,7 +22,7 @@ const server = new McpServer({
 // Get all landscapes
 server.tool(
   "getLandscapes",
-  "Get all landscapes from IcePanel",
+  "Get all your landscapes from IcePanel",
   {},
   async () => {
     try {
@@ -59,34 +59,13 @@ server.tool(
   }
 );
 
-// Get all versions for a landscape
-server.tool(
-  "getVersions",
-  "Get all versions for a landscape",
-  {
-    landscapeId: z.string(),
-  },
-  async ({ landscapeId }) => {
-    try {
-      const versions = await icepanel.getVersions(landscapeId);
-      return {
-        content: [{ type: "text", text: JSON.stringify(versions, null, 2) }],
-      };
-    } catch (error) {
-      return {
-        content: [{ type: "text", text: `Error: ${error.message}` }],
-      };
-    }
-  }
-);
-
 // Get model objects for a landscape version
 server.tool(
   "getModelObjects",
   "Get all model objects for a landscape version",
   {
     landscapeId: z.string(),
-    versionId: z.string(),
+    versionId: z.string().default('latest'),
   },
   async ({ landscapeId, versionId }) => {
     try {

@@ -17,7 +17,7 @@ if (!API_KEY) {
  */
 async function apiRequest(path: string, options: RequestInit = {}) {
   const url = `${API_BASE_URL}${path}`;
-  
+
   const headers = {
     "Accept": "application/json",
     "Content-Type": "application/json",
@@ -52,30 +52,23 @@ export async function getLandscape(organizationId: string, landscapeId: string) 
 }
 
 /**
- * Get all versions for a landscape
- */
-export async function getVersions(landscapeId: string) {
-  return apiRequest(`/landscapes/${landscapeId}/versions`);
-}
-
-/**
  * Get a specific version
  */
-export async function getVersion(landscapeId: string, versionId: string) {
+export async function getVersion(landscapeId: string, versionId: string = "latest") {
   return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}`);
 }
 
 /**
  * Get all model objects for a landscape version
  */
-export async function getModelObjects(landscapeId: string, versionId: string) {
+export async function getModelObjects(landscapeId: string, versionId: string = "latest") {
   return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}/model/objects`);
 }
 
 /**
  * Get a specific model object
  */
-export async function getModelObject(landscapeId: string, versionId: string, modelObjectId: string) {
+export async function getModelObject(landscapeId: string, modelObjectId: string, versionId: string = "latest") {
   return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}/model/objects/${modelObjectId}`);
 }
 
