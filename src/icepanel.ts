@@ -61,8 +61,53 @@ export async function getVersion(landscapeId: string, versionId: string = "lates
 /**
  * Get all model objects for a landscape version
  */
-export async function getModelObjects(landscapeId: string, versionId: string = "latest") {
-  return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}/model/objects`);
+export async function getModelObjects(
+  landscapeId: string, 
+  versionId: string = "latest", 
+  options: { filter?: {
+    domainId?: string | string[],
+    external?: boolean,
+    handleId?: string | string[],
+    labels?: Record<string, string>,
+    name?: string,
+    parentId?: string | null,
+    status?: string | string[],
+    type?: string | string[]
+  }} = {}
+) {
+  const params = new URLSearchParams();
+  
+  if (options.filter) {
+    const filter = options.filter;
+    
+    // Convert filter object to query parameters
+    Object.entries(filter).forEach(([key, value]) => {
+      if (value !== undefined) {
+        if (key === 'labels' && typeof value === 'object') {
+          // Handle labels object
+          Object.entries(value).forEach(([labelKey, labelValue]) => {
+            params.append(`filter[labels][${labelKey}]`, labelValue);
+          });
+        } else if (Array.isArray(value)) {
+          // Handle array values
+          value.forEach(item => {
+            params.append(`filter[${key}][]`, item);
+          });
+        } else if (value === null) {
+          // Handle null values
+          params.append(`filter[${key}]`, 'null');
+        } else {
+          // Handle simple values
+          params.append(`filter[${key}]`, String(value));
+        }
+      }
+    });
+  }
+  
+  const queryString = params.toString();
+  const url = `/landscapes/${landscapeId}/versions/${versionId}/model/objects${queryString ? `?${queryString}` : ''}`;
+  
+  return apiRequest(url);
 }
 
 /**

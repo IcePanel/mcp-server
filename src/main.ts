@@ -66,10 +66,24 @@ server.tool(
   {
     landscapeId: z.string(),
     versionId: z.string().default('latest'),
+    domainId: z.union([z.string(), z.array(z.string())]).optional(),
+    external: z.boolean().optional(),
+    handleId: z.union([z.string(), z.array(z.string())]).optional(),
+    labels: z.record(z.string()).optional(),
+    name: z.string().optional(),
+    parentId: z.string().nullable().optional(),
+    status: z.union([
+      z.enum(["deprecated", "future", "live", "removed"]),
+      z.array(z.enum(["deprecated", "future", "live", "removed"]))
+    ]).optional(),
+    type: z.union([
+      z.enum(["actor", "app", "component", "group", "root", "store", "system"]),
+      z.array(z.enum(["actor", "app", "component", "group", "root", "store", "system"]))
+    ]).optional(),
   },
-  async ({ landscapeId, versionId }) => {
+  async ({ landscapeId, versionId, ...filters }) => {
     try {
-      const modelObjects = await icepanel.getModelObjects(landscapeId, versionId);
+      const modelObjects = await icepanel.getModelObjects(landscapeId, versionId, { filter: filters });
       return {
         content: [{ type: "text", text: JSON.stringify(modelObjects, null, 2) }],
       };
