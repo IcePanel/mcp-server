@@ -53,12 +53,64 @@ export async function getLandscape(organizationId: string, landscapeId: string) 
   return apiRequest(`/organizations/${organizationId}/landscapes/${landscapeId}`);
 }
 
-// /**
-//  * Get a specific version
-//  */
-// export async function getVersion(landscapeId: string, versionId: string = "latest") {
-//   return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}`);
-// }
+/**
+ * Get a specific version
+ */
+export async function getVersion(landscapeId: string, versionId: string = "latest") {
+  return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}`);
+}
+
+/**
+ * Get catalog technologies
+ * 
+ * Retrieves a list of technologies from the IcePanel catalog
+ * 
+ * @param options - Filter options for the catalog technologies
+ * @param options.filter.provider - Filter by provider (aws, azure, gcp, etc.)
+ * @param options.filter.type - Filter by technology type (data-storage, deployment, etc.)
+ * @param options.filter.restrictions - Filter by restrictions (actor, app, component, etc.)
+ * @param options.filter.status - Filter by status (approved, pending-review, rejected)
+ * @returns Promise with catalog technologies response
+ */
+export async function getCatalogTechnologies(
+  options: { 
+    filter?: {
+      provider?: string | string[] | null,
+      type?: string | string[] | null,
+      restrictions?: string | string[],
+      status?: string | string[]
+    }
+  } = {}
+) {
+  const params = new URLSearchParams();
+
+  if (options.filter) {
+    const filter = options.filter;
+
+    // Convert filter object to query parameters
+    Object.entries(filter).forEach(([key, value]) => {
+      if (value !== undefined) {
+        if (Array.isArray(value)) {
+          // Handle array values
+          value.forEach(item => {
+            params.append(`filter[${key}][]`, item);
+          });
+        } else if (value === null) {
+          // Handle null values
+          params.append(`filter[${key}]`, 'null');
+        } else {
+          // Handle simple values
+          params.append(`filter[${key}]`, String(value));
+        }
+      }
+    });
+  }
+
+  const queryString = params.toString();
+  const url = `/catalog/technologies${queryString ? `?${queryString}` : ''}`;
+
+  return apiRequest(url);
+}
 
 /**
  * Get all model objects for a landscape version
