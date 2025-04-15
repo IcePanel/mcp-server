@@ -62,9 +62,9 @@ export async function getVersion(landscapeId: string, versionId: string = "lates
 
 /**
  * Get catalog technologies
- * 
+ *
  * Retrieves a list of technologies from the IcePanel catalog
- * 
+ *
  * @param options - Filter options for the catalog technologies
  * @param options.filter.provider - Filter by provider (aws, azure, gcp, etc.)
  * @param options.filter.type - Filter by technology type (data-storage, deployment, etc.)
@@ -73,7 +73,7 @@ export async function getVersion(landscapeId: string, versionId: string = "lates
  * @returns Promise with catalog technologies response
  */
 export async function getCatalogTechnologies(
-  options: { 
+  options: {
     filter?: {
       provider?: string | string[] | null,
       type?: string | string[] | null,
