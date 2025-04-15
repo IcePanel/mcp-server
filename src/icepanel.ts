@@ -2,8 +2,10 @@
  * IcePanel API client
  */
 
+import type { ModelObjectsResponse, ModelObjectResponse } from "./types.js";
+
 // Base URL for the IcePanel API
-const API_BASE_URL = "https://api.icepanel.io/v1";
+const API_BASE_URL = "https://api.icepanel.dev/v1";
 
 // Get the API key from environment variables
 const API_KEY = process.env.ICEPANEL_API_KEY;
@@ -51,19 +53,19 @@ export async function getLandscape(organizationId: string, landscapeId: string) 
   return apiRequest(`/organizations/${organizationId}/landscapes/${landscapeId}`);
 }
 
-/**
- * Get a specific version
- */
-export async function getVersion(landscapeId: string, versionId: string = "latest") {
-  return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}`);
-}
+// /**
+//  * Get a specific version
+//  */
+// export async function getVersion(landscapeId: string, versionId: string = "latest") {
+//   return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}`);
+// }
 
 /**
  * Get all model objects for a landscape version
  */
 export async function getModelObjects(
-  landscapeId: string, 
-  versionId: string = "latest", 
+  landscapeId: string,
+  versionId: string = "latest",
   options: { filter?: {
     domainId?: string | string[],
     external?: boolean,
@@ -74,18 +76,18 @@ export async function getModelObjects(
     status?: string | string[],
     type?: string | string[]
   }} = {}
-) {
+): Promise<ModelObjectsResponse> {
   const params = new URLSearchParams();
-  
+
   if (options.filter) {
     const filter = options.filter;
-    
+
     // Convert filter object to query parameters
     Object.entries(filter).forEach(([key, value]) => {
       if (value !== undefined) {
         if (key === 'labels' && typeof value === 'object') {
           // Handle labels object
-          Object.entries(value).forEach(([labelKey, labelValue]) => {
+          Object.entries(value as Record<string, string>).forEach(([labelKey, labelValue]) => {
             params.append(`filter[labels][${labelKey}]`, labelValue);
           });
         } else if (Array.isArray(value)) {
@@ -103,18 +105,18 @@ export async function getModelObjects(
       }
     });
   }
-  
+
   const queryString = params.toString();
   const url = `/landscapes/${landscapeId}/versions/${versionId}/model/objects${queryString ? `?${queryString}` : ''}`;
-  
-  return apiRequest(url);
+
+  return apiRequest(url) as Promise<ModelObjectsResponse>;
 }
 
 /**
  * Get a specific model object
  */
 export async function getModelObject(landscapeId: string, modelObjectId: string, versionId: string = "latest") {
-  return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}/model/objects/${modelObjectId}`);
+  return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}/model/objects/${modelObjectId}`) as Promise<ModelObjectResponse>;
 }
 
 /**

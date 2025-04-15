@@ -1,10 +1,10 @@
 import {
   McpServer,
-  ResourceTemplate,
 } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import * as icepanel from "./icepanel.js";
+import { formatModelObjectListItem } from "./format.js";
 
 // Get organization ID from environment variables
 const ORGANIZATION_ID = process.env.ICEPANEL_ORGANIZATION_ID;
@@ -30,7 +30,7 @@ server.tool(
       return {
         content: [{ type: "text", text: JSON.stringify(landscapes, null, 2) }],
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         content: [{ type: "text", text: `Error: ${error.message}` }],
       };
@@ -51,7 +51,7 @@ server.tool(
       return {
         content: [{ type: "text", text: JSON.stringify(landscape, null, 2) }],
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         content: [{ type: "text", text: `Error: ${error.message}` }],
       };
@@ -62,12 +62,22 @@ server.tool(
 // Get model objects for a landscape version
 server.tool(
   "getModelObjects",
-  "Get all model objects for a landscape version",
+`
+Get all the model objects in an IcePanel landscape.
+IcePanel is a C4 diagramming tool. C4 is a model for visualizing the architecture of software systems.
+To get the C1 level objects - query for 'system' type.
+To get the C2 level objects - query for 'app' and 'store' component types.
+To get the C3 level objects - query for the 'component' type.
+
+The 'group' and 'actor' types can be used in any of the levels, and should generally by included in user queries.
+- 'group' - is a type agnostic group which groups objects together
+- 'actor' - is a actor in the system, typically a kind of user. Ex. 'our customer', 'admin user', etc.
+`,
   {
     landscapeId: z.string(),
     versionId: z.string().default('latest'),
     domainId: z.union([z.string(), z.array(z.string())]).optional(),
-    external: z.boolean().optional(),
+    external: z.boolean().optional().default(false),
     handleId: z.union([z.string(), z.array(z.string())]).optional(),
     labels: z.record(z.string()).optional(),
     name: z.string().optional(),
@@ -80,36 +90,20 @@ server.tool(
       z.enum(["actor", "app", "component", "group", "root", "store", "system"]),
       z.array(z.enum(["actor", "app", "component", "group", "root", "store", "system"]))
     ]).optional(),
+    technologyId: z.union([z.string(), z.array(z.string())]).optional(),
+    teamId: z.union([z.string(), z.array(z.string())]).optional(),
   },
   async ({ landscapeId, versionId, ...filters }) => {
     try {
-      const modelObjects = await icepanel.getModelObjects(landscapeId, versionId, { filter: filters });
+      const result = await icepanel.getModelObjects(landscapeId, versionId, { filter: filters });
+      const content: any[] = result.modelObjects.map((o) => ({
+        type: "text",
+        text: formatModelObjectListItem(landscapeId, o)
+      }))
       return {
-        content: [{ type: "text", text: JSON.stringify(modelObjects, null, 2) }],
+        content,
       };
-    } catch (error) {
-      return {
-        content: [{ type: "text", text: `Error: ${error.message}` }],
-      };
-    }
-  }
-);
-
-// Get all connections
-server.tool(
-  "getConnections",
-  "Get all connections for a landscape version",
-  {
-    landscapeId: z.string(),
-    versionId: z.string(),
-  },
-  async ({ landscapeId, versionId }) => {
-    try {
-      const connections = await icepanel.getConnections(landscapeId, versionId);
-      return {
-        content: [{ type: "text", text: JSON.stringify(connections, null, 2) }],
-      };
-    } catch (error) {
+    } catch (error: any) {
       return {
         content: [{ type: "text", text: `Error: ${error.message}` }],
       };
@@ -117,28 +111,34 @@ server.tool(
   }
 );
 
-// Get a specific connection
 server.tool(
-  "getConnection",
-  "Get a specific connection for a landscape version",
+  'getDetailedModelObject',
+  `
+  Get detailed information about a model object in IcePanel.
+  IcePanel is a C4 diagramming tool. C4 is a model for visualizing the architecture of software systems.
+  Use this tool to get detailed information about a model object, such as it's description, type, what it depends on, and it's dependencies as well as the technologies it uses.
+  `,
   {
     landscapeId: z.string(),
-    versionId: z.string(),
-    connectionId: z.string(),
+    modelObjectId: z.string(),
   },
-  async ({ landscapeId, versionId, connectionId }) => {
+  async ({ landscapeId, modelObjectId }) => {
     try {
-      const connection = await icepanel.getConnection(landscapeId, versionId, connectionId);
+      const result = await icepanel.getModelObject(landscapeId, modelObjectId);
+      const content = {
+        type: 'text',
+        text: formatModelObjectListItem(landscapeId, result.modelObject),
+      }
       return {
-        content: [{ type: "text", text: JSON.stringify(connection, null, 2) }],
+        content,
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         content: [{ type: "text", text: `Error: ${error.message}` }],
       };
     }
   }
-);
+)
 
 // Start receiving messages on stdin and sending messages on stdout
 const transport = new StdioServerTransport();
