@@ -4,7 +4,7 @@ import {
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import * as icepanel from "./icepanel.js";
-import { formatModelObjectListItem } from "./format.js";
+import { formatModelObjectItem, formatModelObjectListItem } from "./format.js";
 
 // Get organization ID from environment variables
 const ORGANIZATION_ID = process.env.ICEPANEL_ORGANIZATION_ID;
@@ -125,12 +125,42 @@ server.tool(
   async ({ landscapeId, modelObjectId }) => {
     try {
       const result = await icepanel.getModelObject(landscapeId, modelObjectId);
-      const content = {
+      const content: any = {
         type: 'text',
-        text: formatModelObjectListItem(landscapeId, result.modelObject),
+        text: formatModelObjectItem(landscapeId, result.modelObject),
       }
       return {
-        content,
+        content: [content],
+      };
+    } catch (error: any) {
+      return {
+        content: [{ type: "text", text: `Error: ${error.message}` }],
+      };
+    }
+  }
+)
+
+server.tool(
+  'getTechnologyCatalog',
+  `
+  Get the technology catalog in IcePanel.
+  IcePanel is a C4 diagramming tool. C4 is a model for visualizing the architecture of software systems.
+  Use this tool to get the technology catalog, which is a list of all the technologies available in the system.
+  `,
+  {
+    provider: z.union([z.enum(["aws", "azure", "gcp", "microsoft", "salesforce", "atlassian", "apache", "supabase"]), z.array(z.enum(["aws", "azure", "gcp", "microsoft", "salesforce", "atlassian", "apache", "supabase"]))]).nullable().optional(),
+    type: z.union([z.enum(["data-storage", "deployment", "framework-library", "gateway", "other", "language", "message-broker", "network", "protocol", "runtime", "service-tool"]), z.array(z.enum(["data-storage", "deployment", "framework-library", "gateway", "other", "language", "message-broker", "network", "protocol", "runtime", "service-tool"]))]).nullable().optional(),
+    restrictions: z.union([z.enum(["actor", "app", "component", "connection", "group", "store", "system"]), z.array(z.enum(["actor", "app", "component", "connection", "group", "store", "system"]))]).optional(),
+  },
+  async ({ provider, type, restrictions }) => {
+    try {
+      const result = await icepanel.getCatalogTechnologies({ filter: { provider, type, restrictions, status: "approved" } });
+      const content: any = {
+        type: 'text',
+        text: result.catalogTechnologies.map(t => JSON.stringify(t)),
+      }
+      return {
+        content: [content],
       };
     } catch (error: any) {
       return {

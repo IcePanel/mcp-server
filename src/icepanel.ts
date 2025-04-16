@@ -2,7 +2,7 @@
  * IcePanel API client
  */
 
-import type { ModelObjectsResponse, ModelObjectResponse } from "./types.js";
+import type { ModelObjectsResponse, ModelObjectResponse, CatalogTechnologyResponse } from "./types.js";
 
 // Base URL for the IcePanel API
 const API_BASE_URL = "https://api.icepanel.dev/v1";
@@ -109,7 +109,7 @@ export async function getCatalogTechnologies(
   const queryString = params.toString();
   const url = `/catalog/technologies${queryString ? `?${queryString}` : ''}`;
 
-  return apiRequest(url);
+  return apiRequest(url) as Promise<CatalogTechnologyResponse>;
 }
 
 /**

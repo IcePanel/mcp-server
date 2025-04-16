@@ -46,10 +46,52 @@ export interface ModelObject {
   versionId: string;
 }
 
+export interface CatalogTechnology {
+  category: string;
+  color: string;
+  deprecatedAt: string;
+  description: string;
+  docsUrl: string;
+  iconUrlDark: string[];
+  iconUrlLight: string[];
+  name: string;
+  nameShort: string;
+  provider: string;
+  rejectionMessage: string;
+  rejectionReason: string;
+  restrictions: string[];
+  status: string;
+  type: string;
+  updatesUrl: string;
+  websiteUrl: string;
+  awsXmlSelector: string;
+  azureUpdatesKeyword: string;
+  createdAt: string;
+  createdBy: string;
+  createdById: string;
+  defaultSlug: string;
+  deletedAt: string;
+  deletedBy: string;
+  deletedById: string;
+  disabled: boolean;
+  iconUrl: string;
+  id: string;
+  organizationId: string;
+  slugs: string[];
+  updatedAt: string;
+  updatedBy: string;
+  updatedById: string;
+  updatesXmlUrl: string;
+}
+
 export interface ModelObjectsResponse {
   modelObjects: ModelObject[];
 }
 
 export interface ModelObjectResponse {
   modelObject: ModelObject;
+}
+
+export interface CatalogTechnologyResponse {
+  catalogTechnologies: CatalogTechnology[];
 }
