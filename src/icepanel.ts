@@ -6,7 +6,7 @@ import type { ModelObjectsResponse, ModelObjectResponse, CatalogTechnologyRespon
 
 // Base URL for the IcePanel API
 // Use environment variable if set, otherwise default to production URL
-const API_BASE_URL = process.env.ICEPANEL_API_BASE_URL || "https://api.icepanel.dev/v1";
+const API_BASE_URL = process.env.ICEPANEL_API_BASE_URL || "https://api.icepanel.io/v1";
 
 // Get the API key from environment variables
 const API_KEY = process.env.API_KEY;
