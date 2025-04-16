@@ -8,7 +8,7 @@ import type { ModelObjectsResponse, ModelObjectResponse, CatalogTechnologyRespon
 const API_BASE_URL = "https://api.icepanel.dev/v1";
 
 // Get the API key from environment variables
-const API_KEY = process.env.ICEPANEL_API_KEY;
+const API_KEY = process.env.API_KEY;
 
 // Note: We don't check for API_KEY here as main.ts handles this
 

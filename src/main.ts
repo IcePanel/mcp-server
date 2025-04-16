@@ -21,9 +21,6 @@ if (!ORGANIZATION_ID) {
   process.exit(1);
 }
 
-// Set API key for icepanel module
-process.env.ICEPANEL_API_KEY = API_KEY;
-
 // Create an MCP server
 const server = new McpServer({
   name: "IcePanel MCP Server",
