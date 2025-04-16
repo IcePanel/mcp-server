@@ -95,3 +95,22 @@ export interface ModelObjectResponse {
 export interface CatalogTechnologyResponse {
   catalogTechnologies: CatalogTechnology[];
 }
+
+export interface Team {
+  color: string;
+  name: string;
+  userIds: string[];
+  createdAt: string;
+  createdBy: string;
+  createdById: string;
+  id: string;
+  modelObjectHandleIds: string[];
+  organizationId: string;
+  updatedAt: string;
+  updatedBy: string;
+  updatedById: string;
+}
+
+export interface TeamsResponse {
+  teams: Team[];
+}

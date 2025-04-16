@@ -126,18 +126,29 @@ server.tool(
   `
   Get detailed information about a model object in IcePanel.
   IcePanel is a C4 diagramming tool. C4 is a model for visualizing the architecture of software systems.
-  Use this tool to get detailed information about a model object, such as it's description, type, what it depends on, and it's dependencies as well as the technologies it uses.
+  Use this tool to get detailed information about a model object, such as it's description, type, hierarchical information (i.e. parent and children objects) as well as the technologies it uses.
   `,
   {
     landscapeId: z.string(),
     modelObjectId: z.string(),
+    includeHierarchicalInfo: z.boolean().default(false)
   },
-  async ({ landscapeId, modelObjectId }) => {
+  async ({ landscapeId, modelObjectId, includeHierarchicalInfo }) => {
     try {
       const result = await icepanel.getModelObject(landscapeId, modelObjectId);
+      const modelObject = result.modelObject
+      let parentObject;
+      let childObjects;
+
+      if (includeHierarchicalInfo) {
+        const listResult = await icepanel.getModelObjects(landscapeId)
+        const modelObjectList = listResult.modelObjects;
+        parentObject = (modelObject.parentId && modelObject.parentId !== 'root') ? modelObjectList.find(o => o.id === modelObject.parentId) : undefined;
+        childObjects = modelObject.childIds.length > 0 ? modelObjectList.filter(o => modelObject.childIds.includes(o.id)): undefined;
+      }
       const content: any = {
         type: 'text',
-        text: formatModelObjectItem(landscapeId, result.modelObject),
+        text: formatModelObjectItem(landscapeId, result.modelObject, [], parentObject, childObjects),
       }
       return {
         content: [content],

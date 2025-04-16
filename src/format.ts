@@ -1,4 +1,4 @@
-import type { CatalogTechnology, ModelObject } from "./types.js";
+import type { CatalogTechnology, ModelObject, Team } from "./types.js";
 
 /**
  * Converts text and URL into a markdown link.
@@ -47,8 +47,33 @@ export const formatModelObjectListItem = (landscapeId: string, modelObject: Mode
   return formatString;
 }
 
+export const formatModelObjectRelatedItem = (modelObject: ModelObject): string => {
+  let formatString = '';
 
-export const formatModelObjectItem = (landscapeId: string, modelObject: ModelObject): string => {
+  if (modelObject.name) {
+    formatString += `##### ${modelObject.name}\n`;
+  }
+
+  if (modelObject.id) {
+    formatString += `- ID: ${modelObject.id}\n`;
+  }
+
+  if (modelObject.name) {
+    formatString += `- Name: ${modelObject.name}\n`;
+  }
+
+  if (modelObject.type) {
+    formatString += `- Type: ${modelObject.type}\n`;
+  }
+
+  if (modelObject.status) {
+    formatString += `- Status: ${modelObject.status}\n`;
+  }
+
+  return formatString;
+}
+
+export const formatModelObjectItem = (landscapeId: string, modelObject: ModelObject, teams: Team[], parentObject?: ModelObject, childObjects?: ModelObject[]): string => {
   let formatString = '';
 
   if (modelObject.name) {
@@ -86,7 +111,17 @@ export const formatModelObjectItem = (landscapeId: string, modelObject: ModelObj
   }
 
   if (modelObject.teamIds && modelObject.teamIds.length > 0) {
-    formatString += `- Teams: ${modelObject.teamIds.join(", ")}\n`;
+    formatString += `- Teams: ${modelObject.teamIds.map(teamId => teams.find(t => t.id === teamId)?.name).filter(it => !!it).join(', ')}\n`;
+  }
+
+  if (parentObject) {
+    formatString += `### Parent Object\n\n`
+    formatString += formatModelObjectRelatedItem(parentObject) + '\n\n'
+  }
+
+  if (childObjects) {
+    formatString += `### Child Objects\n\n`
+    formatString += childObjects.map(o => formatModelObjectRelatedItem(o)).join('\n\n')
   }
 
   return formatString;
