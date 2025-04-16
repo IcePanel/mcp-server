@@ -4,7 +4,7 @@ import {
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import * as icepanel from "./icepanel.js";
-import { formatCatalogTechnology, formatModelObjectItem, formatModelObjectListItem } from "./format.js";
+import { formatCatalogTechnology, formatModelObjectItem, formatModelObjectListItem, formatTeam } from "./format.js";
 import Fuse from 'fuse.js';
 
 // Get organization ID from environment variables
@@ -65,7 +65,7 @@ server.tool(
   "getModelObjects",
 `
 Get all the model objects in an IcePanel landscape.
-IcePanel is a C4 diagramming tool. C4 is a model for visualizing the architecture of software systems.
+IcePanel is a C4 diagramming tool. C4 is a framework for visualizing the architecture of software systems.
 To get the C1 level objects - query for 'system' type.
 To get the C2 level objects - query for 'app' and 'store' component types.
 To get the C3 level objects - query for the 'component' type.
@@ -73,14 +73,17 @@ To get the C3 level objects - query for the 'component' type.
 The 'group' and 'actor' types can be used in any of the levels, and should generally by included in user queries.
 - 'group' - is a type agnostic group which groups objects together
 - 'actor' - is a actor in the system, typically a kind of user. Ex. 'our customer', 'admin user', etc.
+
+Use this tool to filter / query against many model objects at once. It provides high level details such as; name, ID, type, status, and external.
+
+Prefer filtering by Technology ID and Team ID when the query is asking things like:
+- "What services does the Automations Team own?"
+- "We need to upgrade our .NET applications - what is affected by this?"
 `,
   {
-    landscapeId: z.string(),
-    versionId: z.string().default('latest'),
-    domainId: z.union([z.string(), z.array(z.string())]).optional(),
+    landscapeId: z.string().length(20),
+    domainId: z.union([z.string().length(20), z.array(z.string().length(20))]).optional(),
     external: z.boolean().optional().default(false),
-    handleId: z.union([z.string(), z.array(z.string())]).optional(),
-    labels: z.record(z.string()).optional(),
     name: z.string().optional(),
     parentId: z.string().nullable().optional(),
     status: z.union([
@@ -91,13 +94,13 @@ The 'group' and 'actor' types can be used in any of the levels, and should gener
       z.enum(["actor", "app", "component", "group", "root", "store", "system"]),
       z.array(z.enum(["actor", "app", "component", "group", "root", "store", "system"]))
     ]).optional(),
-    technologyId: z.union([z.string(), z.array(z.string())]).optional(),
-    teamId: z.union([z.string(), z.array(z.string())]).optional(),
-    search: z.string().optional()
+    technologyId: z.union([z.string().length(20), z.array(z.string().length(20))]).optional().describe("The technology UUID - useful to find all objects using a specific technology or technologies"),
+    teamId: z.union([z.string().length(20), z.array(z.string().length(20))]).optional().describe("The team UUID - useful to find all objects owned by a specific team or teams"),
+    search: z.string().optional().describe("Search by name")
   },
-  async ({ landscapeId, versionId, ...filters }) => {
+  async ({ landscapeId, ...filters }) => {
     try {
-      const result = await icepanel.getModelObjects(landscapeId, versionId, { filter: filters });
+      const result = await icepanel.getModelObjects(landscapeId, "latest", { filter: filters });
       let modelObjects = result.modelObjects;
       if (filters.search) {
        const fuseInstance = new Fuse(modelObjects, {
@@ -122,20 +125,21 @@ The 'group' and 'actor' types can be used in any of the levels, and should gener
 );
 
 server.tool(
-  'getDetailedModelObject',
+  'getModelObject',
   `
   Get detailed information about a model object in IcePanel.
-  IcePanel is a C4 diagramming tool. C4 is a model for visualizing the architecture of software systems.
-  Use this tool to get detailed information about a model object, such as it's description, type, hierarchical information (i.e. parent and children objects) as well as the technologies it uses.
+  IcePanel is a C4 diagramming tool. C4 is a framework for visualizing the architecture of software systems.
+  Use this tool to get detailed information about a model object, such as it's description, type, hierarchical information (i.e. parent and children objects), any teams associated with it, as well as the technologies it uses.
   `,
   {
-    landscapeId: z.string(),
-    modelObjectId: z.string(),
-    includeHierarchicalInfo: z.boolean().default(false)
+    landscapeId: z.string().length(20),
+    modelObjectId: z.string().length(20),
+    includeHierarchicalInfo: z.boolean().default(false).describe('Include hierarchical information like parent and child objects. (Only use this when necessary as it is an expensive operation.)')
   },
   async ({ landscapeId, modelObjectId, includeHierarchicalInfo }) => {
     try {
       const result = await icepanel.getModelObject(landscapeId, modelObjectId);
+      const teamResult = await icepanel.getTeams(ORGANIZATION_ID!);
       const modelObject = result.modelObject
       let parentObject;
       let childObjects;
@@ -148,7 +152,7 @@ server.tool(
       }
       const content: any = {
         type: 'text',
-        text: formatModelObjectItem(landscapeId, result.modelObject, [], parentObject, childObjects),
+        text: formatModelObjectItem(landscapeId, result.modelObject, teamResult.teams, parentObject, childObjects),
       }
       return {
         content: [content],
@@ -162,17 +166,43 @@ server.tool(
 )
 
 server.tool(
+  'getModelObjectRelationships',
+  `
+  Get information about the relationships a model object has in IcePanel.
+  IcePanel is a C4 diagramming tool. C4 is a framework for visualizing the architecture of software systems.
+
+  Use this tool when you want to know about what objects are related to the current object. It provides a succinct list of related items.
+  `,
+  {
+    landscapeId: z.string().length(20),
+    modelObjectId: z.string().length(20),
+  },
+  async({ landscapeId, modelObjectId }) => {
+    try {
+      // TODO query connections. Piece together the relationships a model object has.
+      return {
+        content: []
+      }
+    } catch (error: any) {
+      return {
+        content: [{ type: "text", text: `Error: ${error.message}` }],
+      };
+    }
+  }
+)
+
+server.tool(
   'getTechnologyCatalog',
   `
   Get the technology catalog in IcePanel.
-  IcePanel is a C4 diagramming tool. C4 is a model for visualizing the architecture of software systems.
+  IcePanel is a C4 diagramming tool. C4 is a framework for visualizing the architecture of software systems.
   Use this tool to get the technology catalog, which is a list of all the technologies available in the system.
   `,
   {
     provider: z.union([z.enum(["aws", "azure", "gcp", "microsoft", "salesforce", "atlassian", "apache", "supabase"]), z.array(z.enum(["aws", "azure", "gcp", "microsoft", "salesforce", "atlassian", "apache", "supabase"]))]).nullable().optional(),
     type: z.union([z.enum(["data-storage", "deployment", "framework-library", "gateway", "other", "language", "message-broker", "network", "protocol", "runtime", "service-tool"]), z.array(z.enum(["data-storage", "deployment", "framework-library", "gateway", "other", "language", "message-broker", "network", "protocol", "runtime", "service-tool"]))]).nullable().optional(),
     restrictions: z.union([z.enum(["actor", "app", "component", "connection", "group", "store", "system"]), z.array(z.enum(["actor", "app", "component", "connection", "group", "store", "system"]))]).optional(),
-    search: z.string().optional()
+    search: z.string().describe('Search by name and description')
   },
   async ({ provider, type, restrictions, search }) => {
     try {
@@ -201,6 +231,44 @@ server.tool(
       };
     }
   }
+)
+
+server.tool(
+  'getTeams',
+  `
+  Get the teams in IcePanel.
+  IcePanel is a C4 diagramming tool. C4 is a framework for visualizing the architecture of software systems.
+  Use this tool to get the teams in IcePanel, teams are assigned as owners to different Model Objects within IcePanel.
+  `,
+  {
+    search: z.string().optional().describe('Search by name')
+  },
+  async ({ search }) => {
+    try {
+      const teamResult = await icepanel.getTeams(ORGANIZATION_ID!)
+      let teams = teamResult.teams
+      if (search) {
+        const fuse = new Fuse(teams, {
+          keys: ['name'],
+          threshold: 0.3,
+        });
+        teams = fuse.search(search).map(result => result.item);
+      }
+
+      const teamContent: any[] = teams.map(team => ({
+        type: 'text',
+        text: formatTeam(team)
+      }))
+      return {
+        content: teamContent
+      }
+    } catch (error: any) {
+      return {
+        content: [{ type: 'text', text: `Error: ${error.message}`}]
+      }
+    }
+  }
+
 )
 
 // Start receiving messages on stdin and sending messages on stdout

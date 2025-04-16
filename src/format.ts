@@ -32,6 +32,17 @@ export const formatModelObjectListItem = (landscapeId: string, modelObject: Mode
     formatString += `- Name: ${modelObject.name}\n`;
   }
 
+  if (modelObject.description) {
+   formatString += `- Description: \n`
+   const maxLength = 150;
+   let truncatedDescription = modelObject.description;
+   if (truncatedDescription.length > maxLength) {
+     const lastSpaceIndex = truncatedDescription.lastIndexOf(' ', maxLength);
+     truncatedDescription = truncatedDescription.slice(0, lastSpaceIndex > 0 ? lastSpaceIndex : maxLength);
+   }
+   formatString += `${truncatedDescription}...\n`
+  }
+
   if (modelObject.type) {
     formatString += `- Type: ${modelObject.type}\n`;
   }
@@ -132,6 +143,8 @@ export const formatCatalogTechnology = (technology: CatalogTechnology) => {
 
   formatString += `# ${technology.name}\n\n`;
   formatString += `- Name: ${technology.name}\n`;
+  formatString += `- ID: ${technology.id}\n`;
+
 
   if (technology.nameShort) {
     formatString += `- Short Name: ${technology.nameShort}\n`;
@@ -167,6 +180,29 @@ export const formatCatalogTechnology = (technology: CatalogTechnology) => {
 
   if (technology.defaultSlug) {
     formatString += `- Slug: ${technology.defaultSlug}\n`;
+  }
+
+  return formatString;
+}
+
+
+export const formatTeam = (team: Team): string => {
+  let formatString = '';
+
+  if (team.name) {
+    formatString += `# ${team.name}\n`;
+  }
+
+  if (team.id) {
+    formatString += `- ID: ${team.id}\n`;
+  }
+
+  if (team.name) {
+      formatString += `- Name: ${team.name}\n`;
+    }
+
+  if (team.userIds && team.userIds.length > 0) {
+    formatString += `- Team size: ${team.userIds.length}\n`;
   }
 
   return formatString;
