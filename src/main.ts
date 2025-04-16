@@ -7,12 +7,22 @@ import * as icepanel from "./icepanel.js";
 import { formatCatalogTechnology, formatConnections, formatModelObjectItem, formatModelObjectListItem, formatTeam } from "./format.js";
 import Fuse from 'fuse.js';
 
-// Get organization ID from environment variables
-const ORGANIZATION_ID = process.env.ICEPANEL_ORGANIZATION_ID;
+// Get API key and organization ID from environment variables
+const API_KEY = process.env.API_KEY;
+const ORGANIZATION_ID = process.env.ORGANIZATION_ID;
+
+if (!API_KEY) {
+  console.error("API_KEY environment variable is not set");
+  process.exit(1);
+}
 
 if (!ORGANIZATION_ID) {
-  console.error("ICEPANEL_ORGANIZATION_ID environment variable is not set");
+  console.error("ORGANIZATION_ID environment variable is not set");
+  process.exit(1);
 }
+
+// Set API key for icepanel module
+process.env.ICEPANEL_API_KEY = API_KEY;
 
 // Create an MCP server
 const server = new McpServer({

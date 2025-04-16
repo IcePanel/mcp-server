@@ -10,9 +10,7 @@ const API_BASE_URL = "https://api.icepanel.dev/v1";
 // Get the API key from environment variables
 const API_KEY = process.env.ICEPANEL_API_KEY;
 
-if (!API_KEY) {
-  console.error("ICEPANEL_API_KEY environment variable is not set");
-}
+// Note: We don't check for API_KEY here as main.ts handles this
 
 /**
  * Make an authenticated request to the IcePanel API
