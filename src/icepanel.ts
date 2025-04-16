@@ -2,7 +2,7 @@
  * IcePanel API client
  */
 
-import type { ModelObjectsResponse, ModelObjectResponse, CatalogTechnologyResponse } from "./types.js";
+import type { ModelObjectsResponse, ModelObjectResponse, CatalogTechnologyResponse, TeamsResponse } from "./types.js";
 
 // Base URL for the IcePanel API
 const API_BASE_URL = "https://api.icepanel.dev/v1";
@@ -164,6 +164,18 @@ export async function getOrganizationTechnologies(
   const url = `/organizations/${organizationId}/technologies${queryString ? `?${queryString}` : ''}`;
 
   return apiRequest(url) as Promise<CatalogTechnologyResponse>;
+}
+
+/**
+ * Get teams for an organization
+ * 
+ * Retrieves a list of teams from an organization
+ * 
+ * @param organizationId - The ID of the organization
+ * @returns Promise with teams response
+ */
+export async function getTeams(organizationId: string) {
+  return apiRequest(`/organizations/${organizationId}/teams`) as Promise<TeamsResponse>;
 }
 
 /**
