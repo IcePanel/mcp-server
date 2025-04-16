@@ -21,6 +21,9 @@
     "mcp",
     "architecture"
   ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "author": "IcePanel",
   "license": "MIT",
   "dependencies": {
