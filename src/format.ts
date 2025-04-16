@@ -1,4 +1,4 @@
-import type { ModelObject } from "./types.js";
+import type { CatalogTechnology, ModelObject } from "./types.js";
 
 /**
  * Converts text and URL into a markdown link.
@@ -87,6 +87,51 @@ export const formatModelObjectItem = (landscapeId: string, modelObject: ModelObj
 
   if (modelObject.teamIds && modelObject.teamIds.length > 0) {
     formatString += `- Teams: ${modelObject.teamIds.join(", ")}\n`;
+  }
+
+  return formatString;
+}
+
+export const formatCatalogTechnology = (technology: CatalogTechnology) => {
+  let formatString = '';
+
+  formatString += `# ${technology.name}\n\n`;
+  formatString += `- Name: ${technology.name}\n`;
+
+  if (technology.nameShort) {
+    formatString += `- Short Name: ${technology.nameShort}\n`;
+  }
+
+  if (technology.description) {
+    formatString += `- Description: ${technology.description}\n`;
+  }
+
+  if (technology.docsUrl) {
+    formatString += `- Documentation: ${toMarkdownLink('Docs', technology.docsUrl)}\n`;
+  }
+
+  if (technology.websiteUrl) {
+    formatString += `- Website: ${toMarkdownLink('Website', technology.websiteUrl)}\n`;
+  }
+
+  if (technology.status) {
+    formatString += `- Status: ${technology.status}\n`;
+  }
+
+  if (technology.type) {
+    formatString += `- Type: ${technology.type}\n`;
+  }
+
+  if (technology.provider) {
+    formatString += `- Provider: ${technology.provider}\n`;
+  }
+
+  if (technology.category) {
+    formatString += `- Category: ${technology.category}\n`;
+  }
+
+  if (technology.defaultSlug) {
+    formatString += `- Slug: ${technology.defaultSlug}\n`;
   }
 
   return formatString;

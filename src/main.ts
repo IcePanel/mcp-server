@@ -4,7 +4,8 @@ import {
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import * as icepanel from "./icepanel.js";
-import { formatModelObjectItem, formatModelObjectListItem } from "./format.js";
+import { formatCatalogTechnology, formatModelObjectItem, formatModelObjectListItem } from "./format.js";
+import Fuse from 'fuse.js';
 
 // Get organization ID from environment variables
 const ORGANIZATION_ID = process.env.ICEPANEL_ORGANIZATION_ID;
@@ -92,11 +93,20 @@ The 'group' and 'actor' types can be used in any of the levels, and should gener
     ]).optional(),
     technologyId: z.union([z.string(), z.array(z.string())]).optional(),
     teamId: z.union([z.string(), z.array(z.string())]).optional(),
+    search: z.string().optional()
   },
   async ({ landscapeId, versionId, ...filters }) => {
     try {
       const result = await icepanel.getModelObjects(landscapeId, versionId, { filter: filters });
-      const content: any[] = result.modelObjects.map((o) => ({
+      let modelObjects = result.modelObjects;
+      if (filters.search) {
+       const fuseInstance = new Fuse(modelObjects, {
+         keys: ['name', 'description'],
+         threshold: 0.3
+       })
+        modelObjects = fuseInstance.search(filters.search).map(result => result.item);
+      }
+      const content: any[] = modelObjects.map((o) => ({
         type: "text",
         text: formatModelObjectListItem(landscapeId, o)
       }))
@@ -151,16 +161,28 @@ server.tool(
     provider: z.union([z.enum(["aws", "azure", "gcp", "microsoft", "salesforce", "atlassian", "apache", "supabase"]), z.array(z.enum(["aws", "azure", "gcp", "microsoft", "salesforce", "atlassian", "apache", "supabase"]))]).nullable().optional(),
     type: z.union([z.enum(["data-storage", "deployment", "framework-library", "gateway", "other", "language", "message-broker", "network", "protocol", "runtime", "service-tool"]), z.array(z.enum(["data-storage", "deployment", "framework-library", "gateway", "other", "language", "message-broker", "network", "protocol", "runtime", "service-tool"]))]).nullable().optional(),
     restrictions: z.union([z.enum(["actor", "app", "component", "connection", "group", "store", "system"]), z.array(z.enum(["actor", "app", "component", "connection", "group", "store", "system"]))]).optional(),
+    search: z.string().optional()
   },
-  async ({ provider, type, restrictions }) => {
+  async ({ provider, type, restrictions, search }) => {
     try {
       const result = await icepanel.getCatalogTechnologies({ filter: { provider, type, restrictions, status: "approved" } });
-      const content: any = {
-        type: 'text',
-        text: result.catalogTechnologies.map(t => JSON.stringify(t)),
+      const organizationResult = await icepanel.getOrganizationTechnologies(ORGANIZATION_ID!, { filter: { provider, type, restrictions } });
+      let combinedTechnologies = result.catalogTechnologies.concat(organizationResult.catalogTechnologies);
+
+      if (search) {
+        const fuse = new Fuse(combinedTechnologies, {
+          keys: ['name', 'description'],
+          threshold: 0.3,
+        });
+        combinedTechnologies = fuse.search(search).map(result => result.item);
       }
+
+      const content: any = combinedTechnologies.map(t => ({
+        type: 'text',
+        text: formatCatalogTechnology(t)
+      }));
       return {
-        content: [content],
+        content,
       };
     } catch (error: any) {
       return {
