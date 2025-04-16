@@ -1,14 +1,28 @@
 {
-  "name": "mcp-server",
+  "name": "@icepanel/mcp-server",
   "version": "0.1.0",
-  "description": "MCP Server implementation in TypeScript",
+  "description": "IcePanel MCP Server for integrating with MCP clients",
   "type": "module",
   "main": "dist/main.js",
-  "bin": "dist/main.js",
+  "bin": {
+    "icepanel-mcp-server": "bin/icepanel-mcp-server.js"
+  },
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch --env-file=.env src/main.ts"
+    "dev": "tsx watch --env-file=.env src/main.ts",
+    "prepublishOnly": "npm run build"
   },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "keywords": [
+    "icepanel",
+    "mcp",
+    "architecture"
+  ],
+  "author": "IcePanel",
+  "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.9.0",
     "fuse.js": "^7.1.0",
