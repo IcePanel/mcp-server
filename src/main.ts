@@ -4,7 +4,7 @@ import {
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import * as icepanel from "./icepanel.js";
-import { formatCatalogTechnology, formatModelObjectItem, formatModelObjectListItem, formatTeam } from "./format.js";
+import { formatCatalogTechnology, formatConnections, formatModelObjectItem, formatModelObjectListItem, formatTeam } from "./format.js";
 import Fuse from 'fuse.js';
 
 // Get organization ID from environment variables
@@ -179,9 +179,30 @@ server.tool(
   },
   async({ landscapeId, modelObjectId }) => {
     try {
-      // TODO query connections. Piece together the relationships a model object has.
+      const modelObjectResult = await icepanel.getModelObject(landscapeId, modelObjectId)
+      const modelObjectsResult = await icepanel.getModelObjects(landscapeId)
+      const outgoingConnectionsResult = await icepanel.getModelConnections(landscapeId, "latest", {
+        filter: {
+          originId: modelObjectId
+        }
+      })
+      const incomingConnectionsResult = await icepanel.getModelConnections(landscapeId, "latest", {
+        filter: {
+          targetId: modelObjectId,
+        }
+      })
+      const formattedText = formatConnections(
+        modelObjectResult.modelObject,
+        incomingConnectionsResult.modelConnections,
+        outgoingConnectionsResult.modelConnections,
+        modelObjectsResult.modelObjects,
+      )
+
       return {
-        content: []
+        content: [{
+          type: 'text',
+          text: formattedText
+        }]
       }
     } catch (error: any) {
       return {

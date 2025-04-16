@@ -1,4 +1,4 @@
-import type { CatalogTechnology, ModelObject, Team } from "./types.js";
+import type { CatalogTechnology, ModelConnection, ModelObject, Team } from "./types.js";
 
 /**
  * Converts text and URL into a markdown link.
@@ -206,4 +206,47 @@ export const formatTeam = (team: Team): string => {
   }
 
   return formatString;
+}
+
+export const formatConnections = (modelObject: ModelObject, incomingConnections: ModelConnection[], outgoingConnections: ModelConnection[], modelObjects: ModelObject[]) => {
+  let formatString = '';
+  formatString += `# ${modelObject.name} - Connections\n\n`;
+
+  if (!incomingConnections.length && !outgoingConnections.length) {
+    formatString += `No connections found.\n`
+  }
+
+  const referencedModels: ModelObject[] = [];
+
+  if (incomingConnections.length) {
+    formatString += `### Incoming connections\n`
+    const connectionString = incomingConnections.map(c => {
+      const connectedModel = modelObjects.find(o => o.id === c.originId)
+      if (!connectedModel) {
+        return ''
+      }
+      referencedModels.push(connectedModel);
+      return `${connectedModel.name} (${connectedModel.type}) -[${c.name}]-> ${modelObject.name} (${modelObject.type})`
+    })
+    formatString += connectionString.join('\n')
+  }
+
+  if (outgoingConnections.length) {
+    formatString += `### Outgoing connections\n`
+    const connectionString = incomingConnections.map(c => {
+      const connectedModel = modelObjects.find(o => o.id === c.targetId)
+      if (!connectedModel) {
+        return ''
+      }
+      referencedModels.push(connectedModel);
+      return `${modelObject.name} (${modelObject.type}) -[${c.name}]-> ${connectedModel.name} (${connectedModel.type})`
+    })
+    formatString += connectionString.join('\n')
+  }
+
+  if (referencedModels.length) {
+    formatString += `### Referenced Model Objects`
+    formatString += referencedModels.map(o => formatModelObjectRelatedItem(o)).join('\n')
+  }
+  return formatString
 }

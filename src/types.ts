@@ -114,3 +114,52 @@ export interface Team {
 export interface TeamsResponse {
   teams: Team[];
 }
+
+export interface ModelConnectionDirection {
+  direction: 'outgoing' | 'bidirectional' | null;
+}
+
+export interface ModelConnectionDiagram {
+  connectionId: string;
+  id: string;
+  originModelId: string;
+  targetModelId: string;
+}
+
+export interface ModelConnectionFlow {
+  id: string;
+  stepId: string;
+}
+
+export interface ModelConnection {
+  commit: number;
+  description?: string;
+  direction: 'outgoing' | 'bidirectional' | null;
+  labels: Record<string, string>;
+  name: string;
+  originId: string;
+  status: 'deprecated' | 'future' | 'live' | 'removed';
+  tagIds: string[];
+  targetId: string;
+  technologyIds: string[];
+  handleId: string;
+  createdAt: string;
+  createdBy: 'user' | 'api-key' | 'notification-key' | 'service';
+  createdById: string;
+  deletedAt?: string;
+  deletedBy?: 'user' | 'api-key' | 'notification-key' | 'service';
+  deletedById?: string;
+  diagrams: Record<string, ModelConnectionDiagram>;
+  flows: Record<string, ModelConnectionFlow>;
+  id: string;
+  landscapeId: string;
+  updatedAt: string;
+  updatedBy: 'user' | 'api-key' | 'notification-key' | 'service';
+  updatedById: string;
+  version: number;
+  versionId: string;
+}
+
+export interface ModelConnectionsResponse {
+  modelConnections: ModelConnection[];
+}

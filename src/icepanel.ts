@@ -2,7 +2,7 @@
  * IcePanel API client
  */
 
-import type { ModelObjectsResponse, ModelObjectResponse, CatalogTechnologyResponse, TeamsResponse } from "./types.js";
+import type { ModelObjectsResponse, ModelObjectResponse, CatalogTechnologyResponse, TeamsResponse, ModelConnectionsResponse } from "./types.js";
 
 // Base URL for the IcePanel API
 const API_BASE_URL = "https://api.icepanel.dev/v1";
@@ -114,9 +114,9 @@ export async function getCatalogTechnologies(
 
 /**
  * Get organization technologies
- * 
+ *
  * Retrieves a list of technologies from an organization
- * 
+ *
  * @param organizationId - The ID of the organization
  * @param options - Filter options for the organization technologies
  * @param options.filter.provider - Filter by provider (aws, azure, gcp, etc.)
@@ -168,9 +168,9 @@ export async function getOrganizationTechnologies(
 
 /**
  * Get teams for an organization
- * 
+ *
  * Retrieves a list of teams from an organization
- * 
+ *
  * @param organizationId - The ID of the organization
  * @returns Promise with teams response
  */
@@ -238,10 +238,70 @@ export async function getModelObject(landscapeId: string, modelObjectId: string,
 }
 
 /**
- * Get all connections
+ * Get all model connections
+ *
+ * Retrieves a list of connections between model objects
+ *
+ * @param landscapeId - The ID of the landscape
+ * @param versionId - The ID of the version (defaults to "latest")
+ * @param options - Filter options for the model connections
+ * @param options.filter.direction - Filter by connection direction (outgoing, bidirectional)
+ * @param options.filter.handleId - Filter by handle ID
+ * @param options.filter.labels - Filter by labels
+ * @param options.filter.name - Filter by name
+ * @param options.filter.originId - Filter by origin ID
+ * @param options.filter.status - Filter by status (deprecated, future, live, removed)
+ * @param options.filter.targetId - Filter by target ID
+ * @returns Promise with model connections response
  */
-export async function getConnections(landscapeId: string, versionId: string) {
-  return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}/model/connections`);
+export async function getModelConnections(
+  landscapeId: string,
+  versionId: string = "latest",
+  options: {
+    filter?: {
+      direction?: 'outgoing' | 'bidirectional' | null,
+      handleId?: string | string[],
+      labels?: Record<string, string>,
+      name?: string,
+      originId?: string | string[],
+      status?: ('deprecated' | 'future' | 'live' | 'removed') | ('deprecated' | 'future' | 'live' | 'removed')[],
+      targetId?: string | string[]
+    }
+  } = {}
+): Promise<ModelConnectionsResponse> {
+  const params = new URLSearchParams();
+
+  if (options.filter) {
+    const filter = options.filter;
+
+    // Convert filter object to query parameters
+    Object.entries(filter).forEach(([key, value]) => {
+      if (value !== undefined) {
+        if (key === 'labels' && typeof value === 'object') {
+          // Handle labels object
+          Object.entries(value as Record<string, string>).forEach(([labelKey, labelValue]) => {
+            params.append(`filter[labels][${labelKey}]`, labelValue);
+          });
+        } else if (Array.isArray(value)) {
+          // Handle array values
+          value.forEach(item => {
+            params.append(`filter[${key}][]`, item);
+          });
+        } else if (value === null) {
+          // Handle null values
+          params.append(`filter[${key}]`, 'null');
+        } else {
+          // Handle simple values
+          params.append(`filter[${key}]`, String(value));
+        }
+      }
+    });
+  }
+
+  const queryString = params.toString();
+  const url = `/landscapes/${landscapeId}/versions/${versionId}/model/connections${queryString ? `?${queryString}` : ''}`;
+
+  return apiRequest(url) as Promise<ModelConnectionsResponse>;
 }
 
 /**
