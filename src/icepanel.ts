@@ -5,7 +5,8 @@
 import type { ModelObjectsResponse, ModelObjectResponse, CatalogTechnologyResponse, TeamsResponse, ModelConnectionsResponse } from "./types.js";
 
 // Base URL for the IcePanel API
-const API_BASE_URL = "https://api.icepanel.dev/v1";
+// Use environment variable if set, otherwise default to production URL
+const API_BASE_URL = process.env.ICEPANEL_API_BASE_URL || "https://api.icepanel.dev/v1";
 
 // Get the API key from environment variables
 const API_KEY = process.env.API_KEY;

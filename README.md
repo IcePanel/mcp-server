@@ -37,6 +37,12 @@ Please use MCP Servers with caution; only install tools you trust.
 
 3. **Install**
 
+#### Environment Variables
+
+- `API_KEY`: Your IcePanel API key (required)
+- `ORGANIZATION_ID`: Your IcePanel organization ID (required)
+- `ICEPANEL_API_BASE_URL`: (Optional) Override the API base URL for different environments
+
 #### Method 2: Manual Configuration
 
 Add this to your MCP Clients' MCP config file:
