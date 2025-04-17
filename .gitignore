@@ -1,6 +1,7 @@
 .aider*
 # Build output
 dist/
+*.tgz
 
 # Dependencies
 node_modules/

@@ -2,7 +2,7 @@
 
 /**
  * IcePanel MCP Server
- * 
+ *
  * Environment variables:
  * - API_KEY: Your IcePanel API key
  * - ORGANIZATION_ID: Your IcePanel organization ID
