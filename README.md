@@ -43,7 +43,7 @@ Please use MCP Servers with caution; only install tools you trust.
 - `ORGANIZATION_ID`: Your IcePanel organization ID (required)
 - `ICEPANEL_API_BASE_URL`: (Optional) Override the API base URL for different environments
 
-#### Method 2: Manual Configuration
+#### Configure your MCP Client
 
 Add this to your MCP Clients' MCP config file:
 
