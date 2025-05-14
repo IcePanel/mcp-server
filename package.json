@@ -1,6 +1,6 @@
 {
   "name": "@icepanel/mcp-server",
-  "version": "0.1.0-alpha2",
+  "version": "0.1.0",
   "description": "IcePanel MCP Server for integrating with MCP clients",
   "type": "module",
   "main": "dist/main.js",
