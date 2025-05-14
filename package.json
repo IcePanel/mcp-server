@@ -10,7 +10,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch --env-file=.env src/main.ts",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "publish": "npm publish --access public"
   },
   "files": [
     "dist",
@@ -21,9 +22,6 @@
     "mcp",
     "architecture"
   ],
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
   "author": "IcePanel",
   "license": "MIT",
   "dependencies": {
