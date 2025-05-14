@@ -10,7 +10,7 @@ export function toMarkdownLink(text: string, url: string): string {
     return `[${text}](${url})`;
 }
 
-export const BASE_PATH = 'http://localhost:8080';
+export const BASE_PATH = process.env.ICEPANEL_APP_BASE_URL || "https://app.icepanel.io";
 
 
 export const modelObjectUrl = (landscapeId: string, modelObjectHandle: string): string => {
