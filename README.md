@@ -43,7 +43,7 @@ Please use MCP Servers with caution; only install tools you trust.
 - `ORGANIZATION_ID`: Your IcePanel organization ID (required)
 - `ICEPANEL_API_BASE_URL`: (Optional) Override the API base URL for different environments
 
-#### Method 2: Manual Configuration
+#### Configure your MCP Client
 
 Add this to your MCP Clients' MCP config file:
 
@@ -58,12 +58,6 @@ Add this to your MCP Clients' MCP config file:
 }
 ```
 
-Config file locations:
-
-- Cursor: `~/.cursor/mcp.json`
-- Windsurf: `~/.codeium/windsurf/mcp_config.json`
-- Claude: `~/.claude/mcp_config.json`
-
 ## ✉️ Support
 
 - Reach out to [Support](mailto:support@icepanel.io) if you experience any issues.
@@ -75,4 +69,3 @@ MIT License
 ## 🙏 Acknowledgments
 
 - Thanks to our beta testers and community members
-- Special thanks to the Cursor, Windsurf, and Cline teams for their collaboration
