@@ -24,7 +24,7 @@ if (!ORGANIZATION_ID) {
 // Create an MCP server
 const server = new McpServer({
   name: "IcePanel MCP Server",
-  version: "0.1.0",
+  version: "0.1.1",
 });
 
 // Get all landscapes
