@@ -10,7 +10,7 @@ Please use MCP Servers with caution; only install tools you trust.
 
 ### Prerequisites
 
-- Node.js (Latest LTS version recommended)
+- Node.js (minimum v18+, Latest LTS version recommended)
 - One of the supported MCP Clients:
   - Claude Desktop
   - Cursor
