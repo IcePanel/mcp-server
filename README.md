@@ -36,6 +36,7 @@ Please use MCP Servers with caution; only install tools you trust.
     - Read permissions recommended
 
 3. **Install**
+  - Add the configuration to your MCP Client's MCP config file. (See below)
 
 #### Environment Variables
 
