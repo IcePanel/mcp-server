@@ -39,6 +39,43 @@ async function apiRequest(path: string, options: RequestInit = {}) {
 }
 
 /**
+ * Build URLSearchParams from a filter object
+ *
+ * Converts a filter object to query parameters in the format expected by the IcePanel API.
+ * Handles arrays, null values, labels objects, and simple values.
+ *
+ * @param filter - The filter object to convert
+ * @returns URLSearchParams ready to be appended to a URL
+ */
+function buildFilterParams(filter: Record<string, unknown>): URLSearchParams {
+  const params = new URLSearchParams();
+
+  Object.entries(filter).forEach(([key, value]) => {
+    if (value === undefined) return;
+
+    if (key === 'labels' && typeof value === 'object' && value !== null) {
+      // Handle labels object
+      Object.entries(value as Record<string, string>).forEach(([labelKey, labelValue]) => {
+        params.append(`filter[labels][${labelKey}]`, labelValue);
+      });
+    } else if (Array.isArray(value)) {
+      // Handle array values
+      value.forEach(item => {
+        params.append(`filter[${key}][]`, String(item));
+      });
+    } else if (value === null) {
+      // Handle null values
+      params.append(`filter[${key}]`, 'null');
+    } else {
+      // Handle simple values
+      params.append(`filter[${key}]`, String(value));
+    }
+  });
+
+  return params;
+}
+
+/**
  * Get all landscapes
  */
 export async function getLandscapes(organizationId: string) {
@@ -81,30 +118,7 @@ export async function getCatalogTechnologies(
     }
   } = {}
 ) {
-  const params = new URLSearchParams();
-
-  if (options.filter) {
-    const filter = options.filter;
-
-    // Convert filter object to query parameters
-    Object.entries(filter).forEach(([key, value]) => {
-      if (value !== undefined) {
-        if (Array.isArray(value)) {
-          // Handle array values
-          value.forEach(item => {
-            params.append(`filter[${key}][]`, item);
-          });
-        } else if (value === null) {
-          // Handle null values
-          params.append(`filter[${key}]`, 'null');
-        } else {
-          // Handle simple values
-          params.append(`filter[${key}]`, String(value));
-        }
-      }
-    });
-  }
-
+  const params = options.filter ? buildFilterParams(options.filter) : new URLSearchParams();
   const queryString = params.toString();
   const url = `/catalog/technologies${queryString ? `?${queryString}` : ''}`;
 
@@ -135,30 +149,7 @@ export async function getOrganizationTechnologies(
     }
   } = {}
 ) {
-  const params = new URLSearchParams();
-
-  if (options.filter) {
-    const filter = options.filter;
-
-    // Convert filter object to query parameters
-    Object.entries(filter).forEach(([key, value]) => {
-      if (value !== undefined) {
-        if (Array.isArray(value)) {
-          // Handle array values
-          value.forEach(item => {
-            params.append(`filter[${key}][]`, item);
-          });
-        } else if (value === null) {
-          // Handle null values
-          params.append(`filter[${key}]`, 'null');
-        } else {
-          // Handle simple values
-          params.append(`filter[${key}]`, String(value));
-        }
-      }
-    });
-  }
-
+  const params = options.filter ? buildFilterParams(options.filter) : new URLSearchParams();
   const queryString = params.toString();
   const url = `/organizations/${organizationId}/technologies${queryString ? `?${queryString}` : ''}`;
 
@@ -194,35 +185,7 @@ export async function getModelObjects(
     type?: string | string[]
   }} = {}
 ): Promise<ModelObjectsResponse> {
-  const params = new URLSearchParams();
-
-  if (options.filter) {
-    const filter = options.filter;
-
-    // Convert filter object to query parameters
-    Object.entries(filter).forEach(([key, value]) => {
-      if (value !== undefined) {
-        if (key === 'labels' && typeof value === 'object') {
-          // Handle labels object
-          Object.entries(value as Record<string, string>).forEach(([labelKey, labelValue]) => {
-            params.append(`filter[labels][${labelKey}]`, labelValue);
-          });
-        } else if (Array.isArray(value)) {
-          // Handle array values
-          value.forEach(item => {
-            params.append(`filter[${key}][]`, item);
-          });
-        } else if (value === null) {
-          // Handle null values
-          params.append(`filter[${key}]`, 'null');
-        } else {
-          // Handle simple values
-          params.append(`filter[${key}]`, String(value));
-        }
-      }
-    });
-  }
-
+  const params = options.filter ? buildFilterParams(options.filter) : new URLSearchParams();
   const queryString = params.toString();
   const url = `/landscapes/${landscapeId}/versions/${versionId}/model/objects${queryString ? `?${queryString}` : ''}`;
 
@@ -268,35 +231,7 @@ export async function getModelConnections(
     }
   } = {}
 ): Promise<ModelConnectionsResponse> {
-  const params = new URLSearchParams();
-
-  if (options.filter) {
-    const filter = options.filter;
-
-    // Convert filter object to query parameters
-    Object.entries(filter).forEach(([key, value]) => {
-      if (value !== undefined) {
-        if (key === 'labels' && typeof value === 'object') {
-          // Handle labels object
-          Object.entries(value as Record<string, string>).forEach(([labelKey, labelValue]) => {
-            params.append(`filter[labels][${labelKey}]`, labelValue);
-          });
-        } else if (Array.isArray(value)) {
-          // Handle array values
-          value.forEach(item => {
-            params.append(`filter[${key}][]`, item);
-          });
-        } else if (value === null) {
-          // Handle null values
-          params.append(`filter[${key}]`, 'null');
-        } else {
-          // Handle simple values
-          params.append(`filter[${key}]`, String(value));
-        }
-      }
-    });
-  }
-
+  const params = options.filter ? buildFilterParams(options.filter) : new URLSearchParams();
   const queryString = params.toString();
   const url = `/landscapes/${landscapeId}/versions/${versionId}/model/connections${queryString ? `?${queryString}` : ''}`;
 
