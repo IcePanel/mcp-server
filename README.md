@@ -43,6 +43,15 @@ Please use MCP Servers with caution; only install tools you trust.
 - `API_KEY`: Your IcePanel API key (required)
 - `ORGANIZATION_ID`: Your IcePanel organization ID (required)
 - `ICEPANEL_API_BASE_URL`: (Optional) Override the API base URL for different environments
+- `MCP_TRANSPORT`: (Optional) Transport type: `stdio` (default) or `sse`
+- `MCP_PORT`: (Optional) HTTP port for SSE transport (default: 3000)
+
+#### CLI Flags
+
+When running directly or via Docker, you can use these flags:
+
+- `--transport <stdio|sse>`: Transport type (overrides `MCP_TRANSPORT`)
+- `--port <number>`: HTTP port for SSE transport (overrides `MCP_PORT`)
 
 #### Configure your MCP Client
 
@@ -78,7 +87,7 @@ docker run -i --rm \
   icepanel-mcp-server
 ```
 
-### Configure MCP Client for Docker
+### Configure MCP Client for Docker (stdio)
 
 Add this to your MCP Clients' MCP config file:
 
@@ -93,6 +102,36 @@ Add this to your MCP Clients' MCP config file:
         "-e", "ORGANIZATION_ID=your-org-id",
         "icepanel-mcp-server"
       ]
+    }
+  }
+}
+```
+
+### Run with HTTP/SSE Transport
+
+For standalone HTTP server mode, use the `--transport sse` flag:
+
+```bash
+docker run -d -p 9846:9846 \
+  -e API_KEY="your-api-key" \
+  -e ORGANIZATION_ID="your-org-id" \
+  icepanel-mcp-server --transport sse --port 9846
+```
+
+The server exposes:
+- `GET /sse` - SSE endpoint for establishing connection
+- `POST /messages` - Endpoint for client messages
+- `GET /health` - Health check endpoint
+
+### Configure MCP Client for HTTP/SSE
+
+For MCP clients that support HTTP/SSE transport:
+
+```json
+{
+  "mcpServers": {
+    "@icepanel/icepanel": {
+      "url": "http://localhost:9846/sse"
     }
   }
 }
