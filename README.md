@@ -59,6 +59,45 @@ Add this to your MCP Clients' MCP config file:
 }
 ```
 
+## 🐳 Docker
+
+You can also run the IcePanel MCP Server as a Docker container.
+
+### Build the Docker Image
+
+```bash
+docker build -t icepanel-mcp-server .
+```
+
+### Run with Docker
+
+```bash
+docker run -i --rm \
+  -e API_KEY="your-api-key" \
+  -e ORGANIZATION_ID="your-org-id" \
+  icepanel-mcp-server
+```
+
+### Configure MCP Client for Docker
+
+Add this to your MCP Clients' MCP config file:
+
+```json
+{
+  "mcpServers": {
+    "@icepanel/icepanel": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-e", "API_KEY=your-api-key",
+        "-e", "ORGANIZATION_ID=your-org-id",
+        "icepanel-mcp-server"
+      ]
+    }
+  }
+}
+```
+
 ## ✉️ Support
 
 - Reach out to [Support](mailto:support@icepanel.io) if you experience any issues.
