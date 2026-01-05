@@ -117,6 +117,13 @@ export const formatModelObjectItem = (landscapeId: string, modelObject: ModelObj
     formatString += `- Status: ${modelObject.status}\n`;
   }
 
+  if (modelObject.links && Object.keys(modelObject.links).length > 0) {
+    formatString += `- Links:\n`;
+    for (const [_, link] of Object.entries(modelObject.links)) {
+      formatString += `  - [${link.customName || link.name || link.id}](${link.url})\n`;
+    }
+  }
+
   if (modelObject.technologies && Object.values(modelObject.technologies).length > 0) {
     formatString += `- Technologies: ${Object.values(modelObject.technologies).map(t => t.name).join(", ")}\n`;
   }
