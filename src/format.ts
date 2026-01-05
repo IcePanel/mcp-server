@@ -233,7 +233,7 @@ export const formatConnections = (modelObject: ModelObject, incomingConnections:
 
   if (outgoingConnections.length) {
     formatString += `### Outgoing connections\n`
-    const connectionString = incomingConnections.map(c => {
+    const connectionString = outgoingConnections.map(c => {
       const connectedModel = modelObjects.find(o => o.id === c.targetId)
       if (!connectedModel) {
         return ''
