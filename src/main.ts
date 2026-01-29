@@ -497,6 +497,289 @@ Error Handling:
   }
 );
 
+// ============================================================================
+// Connection Write Tools
+// ============================================================================
+
+server.tool(
+  'icepanel_create_connection',
+  `Create a new connection between model objects in IcePanel.
+
+Args:
+  - landscapeId (string): The landscape ID (20 characters)
+  - name (string): Connection label (e.g., "REST API", "publishes events")
+  - originId (string): Source model object ID (20 characters)
+  - targetId (string): Destination model object ID (20 characters)
+  - direction (enum): 'outgoing', 'bidirectional', or null
+  - description (string, optional): Markdown description
+  - status (enum, optional): deprecated, future, live, removed (default: live)`,
+  {
+    landscapeId: z.string().length(20),
+    name: z.string().min(1).max(255),
+    originId: z.string().length(20),
+    targetId: z.string().length(20),
+    direction: z.enum(["outgoing", "bidirectional"]).nullable(),
+    description: z.string().optional(),
+    status: z.enum(["deprecated", "future", "live", "removed"]).default("live"),
+  },
+  async (params) => {
+    try {
+      const { landscapeId, ...data } = params;
+      const result = await icepanel.createConnection(landscapeId, data);
+      const conn = result.modelConnection;
+      return {
+        content: [{ type: "text", text: `# Connection Created\n\n- **ID**: ${conn.id}\n- **Name**: ${conn.name}\n- **Status**: ${conn.status}` }],
+      };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: handleApiError(error) }] };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_update_connection',
+  `Update an existing connection in IcePanel. Only provided fields will be updated.`,
+  {
+    landscapeId: z.string().length(20),
+    connectionId: z.string().length(20),
+    name: z.string().min(1).max(255).optional(),
+    direction: z.enum(["outgoing", "bidirectional"]).nullable().optional(),
+    description: z.string().optional(),
+    status: z.enum(["deprecated", "future", "live", "removed"]).optional(),
+  },
+  async (params) => {
+    try {
+      const { landscapeId, connectionId, ...data } = params;
+      const updateData = Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== undefined));
+      const result = await icepanel.updateConnection(landscapeId, connectionId, updateData);
+      return {
+        content: [{ type: "text", text: `# Connection Updated\n\n- **ID**: ${result.modelConnection.id}\n- **Name**: ${result.modelConnection.name}` }],
+      };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: handleApiError(error) }] };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_delete_connection',
+  `Delete a connection from IcePanel. WARNING: This action cannot be undone.`,
+  {
+    landscapeId: z.string().length(20),
+    connectionId: z.string().length(20),
+  },
+  async ({ landscapeId, connectionId }) => {
+    try {
+      const existing = await icepanel.getConnection(landscapeId, "latest", connectionId);
+      await icepanel.deleteConnection(landscapeId, connectionId);
+      return {
+        content: [{ type: "text", text: `# Connection Deleted\n\nDeleted "${existing.modelConnection.name}" (ID: ${connectionId}).` }],
+      };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: handleApiError(error) }] };
+    }
+  }
+);
+
+// ============================================================================
+// Team Write Tools
+// ============================================================================
+
+server.tool(
+  'icepanel_create_team',
+  `Create a new team in IcePanel organization.`,
+  {
+    name: z.string().min(1).max(255),
+    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  },
+  async (params) => {
+    try {
+      const result = await icepanel.createTeam(ORGANIZATION_ID!, params);
+      return {
+        content: [{ type: "text", text: `# Team Created\n\n- **ID**: ${result.team.id}\n- **Name**: ${result.team.name}` }],
+      };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: handleApiError(error) }] };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_update_team',
+  `Update an existing team in IcePanel.`,
+  {
+    teamId: z.string().length(20),
+    name: z.string().min(1).max(255).optional(),
+    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  },
+  async (params) => {
+    try {
+      const { teamId, ...data } = params;
+      const updateData = Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== undefined));
+      const result = await icepanel.updateTeam(ORGANIZATION_ID!, teamId, updateData);
+      return {
+        content: [{ type: "text", text: `# Team Updated\n\n- **ID**: ${result.team.id}\n- **Name**: ${result.team.name}` }],
+      };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: handleApiError(error) }] };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_delete_team',
+  `Delete a team from IcePanel. WARNING: This action cannot be undone.`,
+  {
+    teamId: z.string().length(20),
+  },
+  async ({ teamId }) => {
+    try {
+      const teamsResult = await icepanel.getTeams(ORGANIZATION_ID!);
+      const team = teamsResult.teams.find(t => t.id === teamId);
+      await icepanel.deleteTeam(ORGANIZATION_ID!, teamId);
+      return {
+        content: [{ type: "text", text: `# Team Deleted\n\nDeleted "${team?.name || 'Unknown'}" (ID: ${teamId}).` }],
+      };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: handleApiError(error) }] };
+    }
+  }
+);
+
+// ============================================================================
+// Tag Write Tools
+// ============================================================================
+
+server.tool(
+  'icepanel_create_tag',
+  `Create a new tag in IcePanel landscape.`,
+  {
+    landscapeId: z.string().length(20),
+    name: z.string().min(1).max(255),
+    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  },
+  async (params) => {
+    try {
+      const { landscapeId, ...data } = params;
+      const result = await icepanel.createTag(landscapeId, data);
+      return {
+        content: [{ type: "text", text: `# Tag Created\n\n- **ID**: ${result.tag.id}\n- **Name**: ${result.tag.name}` }],
+      };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: handleApiError(error) }] };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_update_tag',
+  `Update an existing tag in IcePanel.`,
+  {
+    landscapeId: z.string().length(20),
+    tagId: z.string().length(20),
+    name: z.string().min(1).max(255).optional(),
+    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  },
+  async (params) => {
+    try {
+      const { landscapeId, tagId, ...data } = params;
+      const updateData = Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== undefined));
+      const result = await icepanel.updateTag(landscapeId, tagId, updateData);
+      return {
+        content: [{ type: "text", text: `# Tag Updated\n\n- **ID**: ${result.tag.id}\n- **Name**: ${result.tag.name}` }],
+      };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: handleApiError(error) }] };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_delete_tag',
+  `Delete a tag from IcePanel. WARNING: This action cannot be undone.`,
+  {
+    landscapeId: z.string().length(20),
+    tagId: z.string().length(20),
+  },
+  async ({ landscapeId, tagId }) => {
+    try {
+      await icepanel.deleteTag(landscapeId, tagId);
+      return {
+        content: [{ type: "text", text: `# Tag Deleted\n\nDeleted tag (ID: ${tagId}).` }],
+      };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: handleApiError(error) }] };
+    }
+  }
+);
+
+// ============================================================================
+// Domain Write Tools
+// ============================================================================
+
+server.tool(
+  'icepanel_create_domain',
+  `Create a new domain in IcePanel landscape. Domains organize model objects into logical groupings.`,
+  {
+    landscapeId: z.string().length(20),
+    name: z.string().min(1).max(255),
+    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  },
+  async (params) => {
+    try {
+      const { landscapeId, ...data } = params;
+      const result = await icepanel.createDomain(landscapeId, data);
+      return {
+        content: [{ type: "text", text: `# Domain Created\n\n- **ID**: ${result.domain.id}\n- **Name**: ${result.domain.name}` }],
+      };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: handleApiError(error) }] };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_update_domain',
+  `Update an existing domain in IcePanel.`,
+  {
+    landscapeId: z.string().length(20),
+    domainId: z.string().length(20),
+    name: z.string().min(1).max(255).optional(),
+    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  },
+  async (params) => {
+    try {
+      const { landscapeId, domainId, ...data } = params;
+      const updateData = Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== undefined));
+      const result = await icepanel.updateDomain(landscapeId, domainId, updateData);
+      return {
+        content: [{ type: "text", text: `# Domain Updated\n\n- **ID**: ${result.domain.id}\n- **Name**: ${result.domain.name}` }],
+      };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: handleApiError(error) }] };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_delete_domain',
+  `Delete a domain from IcePanel. WARNING: This action cannot be undone.`,
+  {
+    landscapeId: z.string().length(20),
+    domainId: z.string().length(20),
+  },
+  async ({ landscapeId, domainId }) => {
+    try {
+      await icepanel.deleteDomain(landscapeId, domainId);
+      return {
+        content: [{ type: "text", text: `# Domain Deleted\n\nDeleted domain (ID: ${domainId}).` }],
+      };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: handleApiError(error) }] };
+    }
+  }
+);
+
 // Get transport configuration from CLI (set by bin/icepanel-mcp-server.js)
 const transportType = process.env._MCP_TRANSPORT || 'stdio';
 const port = parseInt(process.env._MCP_PORT || '3000', 10);
