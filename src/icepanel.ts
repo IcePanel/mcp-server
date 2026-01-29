@@ -10,6 +10,9 @@ import type {
   ModelConnectionsResponse,
   CreateModelObjectRequest,
   UpdateModelObjectRequest,
+  CreateTagRequest,
+  UpdateTagRequest,
+  TagResponse,
 } from "./types.js";
 
 // Base URL for the IcePanel API
@@ -440,6 +443,77 @@ export async function deleteModelObject(
 ): Promise<void> {
   await apiRequest(
     `/landscapes/${landscapeId}/versions/${versionId}/model/objects/${modelObjectId}`,
+    {
+      method: "DELETE",
+    }
+  );
+}
+
+// ============================================================================
+// Tag Write Operations
+// ============================================================================
+
+/**
+ * Create a new tag
+ * 
+ * @param landscapeId - The landscape ID
+ * @param data - The tag data to create
+ * @param versionId - The version ID (defaults to "latest")
+ * @returns Promise with the created tag
+ */
+export async function createTag(
+  landscapeId: string,
+  data: CreateTagRequest,
+  versionId: string = "latest"
+): Promise<TagResponse> {
+  return apiRequest<TagResponse>(
+    `/landscapes/${landscapeId}/versions/${versionId}/tags`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+/**
+ * Update an existing tag
+ * 
+ * @param landscapeId - The landscape ID
+ * @param tagId - The tag ID to update
+ * @param data - The fields to update
+ * @param versionId - The version ID (defaults to "latest")
+ * @returns Promise with the updated tag
+ */
+export async function updateTag(
+  landscapeId: string,
+  tagId: string,
+  data: UpdateTagRequest,
+  versionId: string = "latest"
+): Promise<TagResponse> {
+  return apiRequest<TagResponse>(
+    `/landscapes/${landscapeId}/versions/${versionId}/tags/${tagId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+/**
+ * Delete a tag
+ * 
+ * @param landscapeId - The landscape ID
+ * @param tagId - The tag ID to delete
+ * @param versionId - The version ID (defaults to "latest")
+ * @returns Promise that resolves when deletion is complete
+ */
+export async function deleteTag(
+  landscapeId: string,
+  tagId: string,
+  versionId: string = "latest"
+): Promise<void> {
+  await apiRequest(
+    `/landscapes/${landscapeId}/versions/${versionId}/tags/${tagId}`,
     {
       method: "DELETE",
     }

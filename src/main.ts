@@ -490,6 +490,153 @@ Error Handling:
   }
 );
 
+// ============================================================================
+// Tag Write Tools
+// ============================================================================
+
+server.tool(
+  'icepanel_create_tag',
+  `Create a new tag in IcePanel.
+
+This tool CREATES a new tag in a landscape. Tags can be assigned to model objects and connections for categorization.
+
+Args:
+  - landscapeId (string): The landscape ID (20 characters)
+  - name (string): Tag name (1-255 characters)
+  - color (string, optional): Hex color code for the tag (e.g., "#FF5733")
+  - tagGroupId (string, optional): Tag group ID to add this tag to
+
+Returns:
+  The created tag with its new ID.
+
+Examples:
+  - Create tag: landscapeId="...", name="Production"
+  - Create with color: landscapeId="...", name="Critical", color="#FF0000"
+
+Error Handling:
+  - Returns error if landscapeId doesn't exist
+  - Returns error if API key lacks write permission`,
+  {
+    landscapeId: z.string().length(20).describe("The landscape ID"),
+    name: z.string().min(1).max(255).describe("Tag name"),
+    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional().describe("Hex color code"),
+    tagGroupId: z.string().length(20).optional().describe("Tag group ID"),
+  },
+  async (params) => {
+    try {
+      const { landscapeId, ...data } = params;
+      const result = await icepanel.createTag(landscapeId, data);
+      const tag = result.tag;
+      return {
+        content: [{ 
+          type: "text", 
+          text: `# Tag Created Successfully\n\n- **ID**: ${tag.id}\n- **Name**: ${tag.name}\n- **Color**: ${tag.color || 'default'}` 
+        }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: handleApiError(error) }],
+      };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_update_tag',
+  `Update an existing tag in IcePanel.
+
+This tool MODIFIES an existing tag. Only provided fields will be updated.
+
+Args:
+  - landscapeId (string): The landscape ID (20 characters)
+  - tagId (string): The tag ID to update (20 characters)
+  - name (string, optional): New tag name
+  - color (string, optional): New hex color code
+
+Returns:
+  The updated tag.
+
+Examples:
+  - Update name: tagId="...", name="New Tag Name"
+  - Update color: tagId="...", color="#00FF00"
+
+Error Handling:
+  - Returns error if tagId doesn't exist
+  - Returns error if API key lacks write permission`,
+  {
+    landscapeId: z.string().length(20).describe("The landscape ID"),
+    tagId: z.string().length(20).describe("The tag ID to update"),
+    name: z.string().min(1).max(255).optional().describe("New tag name"),
+    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional().describe("New hex color code"),
+  },
+  async (params) => {
+    try {
+      const { landscapeId, tagId, ...data } = params;
+      const updateData = Object.fromEntries(
+        Object.entries(data).filter(([_, v]) => v !== undefined)
+      );
+      const result = await icepanel.updateTag(landscapeId, tagId, updateData);
+      const tag = result.tag;
+      return {
+        content: [{ 
+          type: "text", 
+          text: `# Tag Updated Successfully\n\n- **ID**: ${tag.id}\n- **Name**: ${tag.name}\n- **Color**: ${tag.color || 'default'}` 
+        }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: handleApiError(error) }],
+      };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_delete_tag',
+  `Delete a tag from IcePanel.
+
+⚠️ WARNING: This action PERMANENTLY DELETES the tag and cannot be undone.
+
+This tool removes a tag from a landscape. Model objects with this tag will have it removed.
+
+Args:
+  - landscapeId (string): The landscape ID (20 characters)
+  - tagId (string): The tag ID to delete (20 characters)
+
+Returns:
+  Confirmation message on successful deletion.
+
+Considerations:
+  - Model objects and connections with this tag will have it removed
+  - This action cannot be undone - verify the ID before proceeding
+
+Error Handling:
+  - Returns error if tagId doesn't exist
+  - Returns error if API key lacks write permission`,
+  {
+    landscapeId: z.string().length(20).describe("The landscape ID"),
+    tagId: z.string().length(20).describe("The tag ID to delete"),
+  },
+  async ({ landscapeId, tagId }) => {
+    try {
+      await icepanel.deleteTag(landscapeId, tagId);
+      return {
+        content: [{ 
+          type: "text", 
+          text: `# Tag Deleted\n\nSuccessfully deleted tag (ID: ${tagId}).` 
+        }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: handleApiError(error) }],
+      };
+    }
+  }
+);
+
 // Get transport configuration from CLI (set by bin/icepanel-mcp-server.js)
 const transportType = process.env._MCP_TRANSPORT || 'stdio';
 const port = parseInt(process.env._MCP_PORT || '3000', 10);

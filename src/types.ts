@@ -209,3 +209,45 @@ export interface UpdateModelObjectRequest {
   teamOnlyEditing?: boolean;
   technologyIds?: string[];
 }
+
+/**
+ * Tag entity
+ */
+export interface Tag {
+  id: string;
+  name: string;
+  color?: string;
+  landscapeId: string;
+  tagGroupId?: string;
+  createdAt: string;
+  createdBy: string;
+  createdById: string;
+  updatedAt: string;
+  updatedBy: string;
+  updatedById: string;
+}
+
+/**
+ * Request body for creating a tag
+ */
+export interface CreateTagRequest {
+  name: string;
+  color?: string;
+  tagGroupId?: string;
+}
+
+/**
+ * Request body for updating a tag
+ */
+export interface UpdateTagRequest {
+  name?: string;
+  color?: string;
+  tagGroupId?: string;
+}
+
+/**
+ * Response for single tag
+ */
+export interface TagResponse {
+  tag: Tag;
+}
