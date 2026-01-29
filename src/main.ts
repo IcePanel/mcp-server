@@ -4,6 +4,7 @@ import {
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import * as icepanel from "./icepanel.js";
+import { handleApiError } from "./icepanel.js";
 import { formatCatalogTechnology, formatConnections, formatModelObjectItem, formatModelObjectListItem, formatTeam } from "./format.js";
 import { startHttpServer } from "./http-server.js";
 import Fuse from 'fuse.js';
@@ -306,6 +307,195 @@ server.tool(
   }
 
 )
+
+// ============================================================================
+// Model Object Write Tools
+// ============================================================================
+
+server.tool(
+  'icepanel_create_model_object',
+  `Create a new model object (system, app, component, etc.) in IcePanel.
+
+This tool CREATES a new C4 architecture element in your landscape.
+
+Args:
+  - landscapeId (string): The landscape ID (20 characters)
+  - name (string): Display name for the object (1-255 characters)
+  - type (enum): One of: actor, app, component, group, store, system
+  - parentId (string): Parent object ID (use getModelObjects with type='root' to find root)
+  - description (string, optional): Markdown description
+  - status (enum, optional): deprecated, future, live, removed (default: live)
+  - external (boolean, optional): Whether this is an external system (default: false)
+  - teamIds (string[], optional): Team IDs that own this object
+  - technologyIds (string[], optional): Technology IDs used by this object
+  - caption (string, optional): Short summary shown as display description
+
+Returns:
+  The created model object with its new ID.
+
+C4 Level Mapping:
+  - 'system' = C1 System Context
+  - 'app'/'store' = C2 Container
+  - 'component' = C3 Component
+  - 'actor' = Person/External Actor
+  - 'group' = Logical grouping (any level)
+
+Examples:
+  - Create a backend system: type="system", name="Order Service"
+  - Create a database: type="store", name="Orders DB", parentId="<system-id>"
+  - Create an API component: type="component", name="REST API", parentId="<app-id>"
+
+Error Handling:
+  - Returns error if parentId doesn't exist
+  - Returns error if API key lacks write permission`,
+  {
+    landscapeId: z.string().length(20).describe("The landscape ID"),
+    name: z.string().min(1).max(255).describe("Display name for the object"),
+    type: z.enum(["actor", "app", "component", "group", "store", "system"]).describe("C4 object type"),
+    parentId: z.string().length(20).describe("Parent object ID (use getModelObjects with type='root' to find root)"),
+    description: z.string().optional().describe("Markdown description"),
+    status: z.enum(["deprecated", "future", "live", "removed"]).default("live").describe("Object status"),
+    external: z.boolean().default(false).describe("Whether this is external to your system"),
+    teamIds: z.array(z.string().length(20)).optional().describe("Owning team IDs"),
+    technologyIds: z.array(z.string().length(20)).optional().describe("Technology IDs"),
+    caption: z.string().optional().describe("Short summary shown as display description"),
+  },
+  async (params) => {
+    try {
+      const { landscapeId, ...data } = params;
+      const result = await icepanel.createModelObject(landscapeId, data);
+      const teamResult = await icepanel.getTeams(ORGANIZATION_ID!);
+      return {
+        content: [{ 
+          type: "text", 
+          text: `# Model Object Created Successfully\n\n${formatModelObjectItem(landscapeId, result.modelObject, teamResult.teams)}` 
+        }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: handleApiError(error) }],
+      };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_update_model_object',
+  `Update an existing model object in IcePanel.
+
+This tool MODIFIES an existing C4 architecture element. Only provided fields will be updated.
+
+Args:
+  - landscapeId (string): The landscape ID (20 characters)
+  - modelObjectId (string): The model object ID to update (20 characters)
+  - name (string, optional): New display name
+  - description (string, optional): New markdown description
+  - status (enum, optional): New status: deprecated, future, live, removed
+  - external (boolean, optional): Whether this is external
+  - parentId (string, optional): Move to a new parent object
+  - type (enum, optional): Change type (actor, app, component, group, store, system)
+  - teamIds (string[], optional): Replace owning team IDs
+  - technologyIds (string[], optional): Replace technology IDs
+  - caption (string, optional): Short summary shown as display description
+
+Returns:
+  The updated model object.
+
+Examples:
+  - Update description: modelObjectId="...", description="New description"
+  - Change status: modelObjectId="...", status="deprecated"
+  - Move to new parent: modelObjectId="...", parentId="<new-parent-id>"
+
+Error Handling:
+  - Returns error if modelObjectId doesn't exist
+  - Returns error if parentId (when provided) doesn't exist
+  - Returns error if API key lacks write permission`,
+  {
+    landscapeId: z.string().length(20).describe("The landscape ID"),
+    modelObjectId: z.string().length(20).describe("The model object ID to update"),
+    name: z.string().min(1).max(255).optional().describe("New display name"),
+    description: z.string().optional().describe("New markdown description"),
+    status: z.enum(["deprecated", "future", "live", "removed"]).optional().describe("New status"),
+    external: z.boolean().optional().describe("Whether this is external"),
+    parentId: z.string().length(20).optional().describe("New parent object ID"),
+    type: z.enum(["actor", "app", "component", "group", "store", "system"]).optional().describe("New object type"),
+    teamIds: z.array(z.string().length(20)).optional().describe("Replace owning team IDs"),
+    technologyIds: z.array(z.string().length(20)).optional().describe("Replace technology IDs"),
+    caption: z.string().optional().describe("Short summary shown as display description"),
+  },
+  async (params) => {
+    try {
+      const { landscapeId, modelObjectId, ...data } = params;
+      // Filter out undefined values
+      const updateData = Object.fromEntries(
+        Object.entries(data).filter(([_, v]) => v !== undefined)
+      );
+      const result = await icepanel.updateModelObject(landscapeId, modelObjectId, updateData);
+      const teamResult = await icepanel.getTeams(ORGANIZATION_ID!);
+      return {
+        content: [{ 
+          type: "text", 
+          text: `# Model Object Updated Successfully\n\n${formatModelObjectItem(landscapeId, result.modelObject, teamResult.teams)}` 
+        }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: handleApiError(error) }],
+      };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_delete_model_object',
+  `Delete a model object from IcePanel.
+
+⚠️ WARNING: This action PERMANENTLY DELETES the model object and cannot be undone.
+
+This tool removes a C4 architecture element from your landscape. Child objects may become orphaned or be deleted depending on the object type.
+
+Args:
+  - landscapeId (string): The landscape ID (20 characters)
+  - modelObjectId (string): The model object ID to delete (20 characters)
+
+Returns:
+  Confirmation message on successful deletion.
+
+Considerations:
+  - Deleting a parent object may affect child objects
+  - Connections to/from this object will be removed
+  - This action cannot be undone - verify the ID before proceeding
+
+Error Handling:
+  - Returns error if modelObjectId doesn't exist
+  - Returns error if API key lacks write permission`,
+  {
+    landscapeId: z.string().length(20).describe("The landscape ID"),
+    modelObjectId: z.string().length(20).describe("The model object ID to delete"),
+  },
+  async ({ landscapeId, modelObjectId }) => {
+    try {
+      // First get the object name for confirmation message
+      const existing = await icepanel.getModelObject(landscapeId, modelObjectId);
+      const objectName = existing.modelObject.name;
+      
+      await icepanel.deleteModelObject(landscapeId, modelObjectId);
+      return {
+        content: [{ 
+          type: "text", 
+          text: `# Model Object Deleted\n\nSuccessfully deleted model object "${objectName}" (ID: ${modelObjectId}).` 
+        }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: handleApiError(error) }],
+      };
+    }
+  }
+);
 
 // Get transport configuration from CLI (set by bin/icepanel-mcp-server.js)
 const transportType = process.env._MCP_TRANSPORT || 'stdio';
