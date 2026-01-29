@@ -490,6 +490,178 @@ Error Handling:
   }
 );
 
+// ============================================================================
+// Connection Write Tools
+// ============================================================================
+
+server.tool(
+  'icepanel_create_connection',
+  `Create a new connection between model objects in IcePanel.
+
+This tool CREATES a new connection (dependency/communication flow) between two objects.
+
+Args:
+  - landscapeId (string): The landscape ID (20 characters)
+  - name (string): Connection label describing the relationship (e.g., "REST API", "publishes events")
+  - originId (string): Source model object ID (20 characters)
+  - targetId (string): Destination model object ID (20 characters)
+  - direction (enum): Connection direction: 'outgoing' (one-way), 'bidirectional', or null
+  - description (string, optional): Markdown description of the connection
+  - status (enum, optional): deprecated, future, live, removed (default: live)
+  - technologyIds (string[], optional): Technology IDs used for this connection (e.g., HTTP, gRPC)
+
+Returns:
+  The created connection with its new ID.
+
+Connection Direction:
+  - 'outgoing': Origin -> Target (one-way flow)
+  - 'bidirectional': Origin <-> Target (two-way flow)
+  - null: No direction specified
+
+Examples:
+  - API call: name="REST API", direction="outgoing"
+  - Event flow: name="Order Events", direction="outgoing"
+  - Sync connection: name="Database Sync", direction="bidirectional"
+
+Error Handling:
+  - Returns error if originId or targetId don't exist
+  - Returns error if API key lacks write permission`,
+  {
+    landscapeId: z.string().length(20).describe("The landscape ID"),
+    name: z.string().min(1).max(255).describe("Connection label"),
+    originId: z.string().length(20).describe("Source model object ID"),
+    targetId: z.string().length(20).describe("Destination model object ID"),
+    direction: z.enum(["outgoing", "bidirectional"]).nullable().describe("Connection direction"),
+    description: z.string().optional().describe("Markdown description"),
+    status: z.enum(["deprecated", "future", "live", "removed"]).default("live").describe("Connection status"),
+    technologyIds: z.array(z.string().length(20)).optional().describe("Technology IDs for this connection"),
+  },
+  async (params) => {
+    try {
+      const { landscapeId, ...data } = params;
+      const result = await icepanel.createConnection(landscapeId, data);
+      const conn = result.modelConnection;
+      return {
+        content: [{ 
+          type: "text", 
+          text: `# Connection Created Successfully\n\n- **ID**: ${conn.id}\n- **Name**: ${conn.name}\n- **Origin**: ${conn.originId}\n- **Target**: ${conn.targetId}\n- **Direction**: ${conn.direction || 'unspecified'}\n- **Status**: ${conn.status}` 
+        }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: handleApiError(error) }],
+      };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_update_connection',
+  `Update an existing connection in IcePanel.
+
+This tool MODIFIES an existing connection. Only provided fields will be updated.
+
+Args:
+  - landscapeId (string): The landscape ID (20 characters)
+  - connectionId (string): The connection ID to update (20 characters)
+  - name (string, optional): New connection label
+  - direction (enum, optional): New direction: 'outgoing', 'bidirectional', or null
+  - description (string, optional): New markdown description
+  - status (enum, optional): New status: deprecated, future, live, removed
+  - technologyIds (string[], optional): Replace technology IDs
+
+Returns:
+  The updated connection.
+
+Examples:
+  - Update name: connectionId="...", name="New API Endpoint"
+  - Change status: connectionId="...", status="deprecated"
+  - Update description: connectionId="...", description="Updated flow description"
+
+Error Handling:
+  - Returns error if connectionId doesn't exist
+  - Returns error if API key lacks write permission`,
+  {
+    landscapeId: z.string().length(20).describe("The landscape ID"),
+    connectionId: z.string().length(20).describe("The connection ID to update"),
+    name: z.string().min(1).max(255).optional().describe("New connection label"),
+    direction: z.enum(["outgoing", "bidirectional"]).nullable().optional().describe("New direction"),
+    description: z.string().optional().describe("New markdown description"),
+    status: z.enum(["deprecated", "future", "live", "removed"]).optional().describe("New status"),
+    technologyIds: z.array(z.string().length(20)).optional().describe("Replace technology IDs"),
+  },
+  async (params) => {
+    try {
+      const { landscapeId, connectionId, ...data } = params;
+      const updateData = Object.fromEntries(
+        Object.entries(data).filter(([_, v]) => v !== undefined)
+      );
+      const result = await icepanel.updateConnection(landscapeId, connectionId, updateData);
+      const conn = result.modelConnection;
+      return {
+        content: [{ 
+          type: "text", 
+          text: `# Connection Updated Successfully\n\n- **ID**: ${conn.id}\n- **Name**: ${conn.name}\n- **Origin**: ${conn.originId}\n- **Target**: ${conn.targetId}\n- **Direction**: ${conn.direction || 'unspecified'}\n- **Status**: ${conn.status}` 
+        }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: handleApiError(error) }],
+      };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_delete_connection',
+  `Delete a connection from IcePanel.
+
+⚠️ WARNING: This action PERMANENTLY DELETES the connection and cannot be undone.
+
+This tool removes a connection between model objects from your landscape.
+
+Args:
+  - landscapeId (string): The landscape ID (20 characters)
+  - connectionId (string): The connection ID to delete (20 characters)
+
+Returns:
+  Confirmation message on successful deletion.
+
+Considerations:
+  - This only deletes the connection, not the connected objects
+  - This action cannot be undone - verify the ID before proceeding
+
+Error Handling:
+  - Returns error if connectionId doesn't exist
+  - Returns error if API key lacks write permission`,
+  {
+    landscapeId: z.string().length(20).describe("The landscape ID"),
+    connectionId: z.string().length(20).describe("The connection ID to delete"),
+  },
+  async ({ landscapeId, connectionId }) => {
+    try {
+      // First get the connection name for confirmation message
+      const existing = await icepanel.getConnection(landscapeId, "latest", connectionId);
+      const connName = existing.name;
+      
+      await icepanel.deleteConnection(landscapeId, connectionId);
+      return {
+        content: [{ 
+          type: "text", 
+          text: `# Connection Deleted\n\nSuccessfully deleted connection "${connName}" (ID: ${connectionId}).` 
+        }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: handleApiError(error) }],
+      };
+    }
+  }
+);
+
 // Get transport configuration from CLI (set by bin/icepanel-mcp-server.js)
 const transportType = process.env._MCP_TRANSPORT || 'stdio';
 const port = parseInt(process.env._MCP_PORT || '3000', 10);

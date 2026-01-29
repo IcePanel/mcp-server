@@ -8,8 +8,11 @@ import type {
   CatalogTechnologyResponse, 
   TeamsResponse, 
   ModelConnectionsResponse,
+  ModelConnectionResponse,
   CreateModelObjectRequest,
   UpdateModelObjectRequest,
+  CreateConnectionRequest,
+  UpdateConnectionRequest,
 } from "./types.js";
 
 // Base URL for the IcePanel API
@@ -440,6 +443,77 @@ export async function deleteModelObject(
 ): Promise<void> {
   await apiRequest(
     `/landscapes/${landscapeId}/versions/${versionId}/model/objects/${modelObjectId}`,
+    {
+      method: "DELETE",
+    }
+  );
+}
+
+// ============================================================================
+// Model Connection Write Operations
+// ============================================================================
+
+/**
+ * Create a new model connection
+ * 
+ * @param landscapeId - The landscape ID
+ * @param data - The connection data to create
+ * @param versionId - The version ID (defaults to "latest")
+ * @returns Promise with the created connection
+ */
+export async function createConnection(
+  landscapeId: string,
+  data: CreateConnectionRequest,
+  versionId: string = "latest"
+): Promise<ModelConnectionResponse> {
+  return apiRequest<ModelConnectionResponse>(
+    `/landscapes/${landscapeId}/versions/${versionId}/model/connections`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+/**
+ * Update an existing model connection
+ * 
+ * @param landscapeId - The landscape ID
+ * @param connectionId - The connection ID to update
+ * @param data - The fields to update
+ * @param versionId - The version ID (defaults to "latest")
+ * @returns Promise with the updated connection
+ */
+export async function updateConnection(
+  landscapeId: string,
+  connectionId: string,
+  data: UpdateConnectionRequest,
+  versionId: string = "latest"
+): Promise<ModelConnectionResponse> {
+  return apiRequest<ModelConnectionResponse>(
+    `/landscapes/${landscapeId}/versions/${versionId}/model/connections/${connectionId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+/**
+ * Delete a model connection
+ * 
+ * @param landscapeId - The landscape ID
+ * @param connectionId - The connection ID to delete
+ * @param versionId - The version ID (defaults to "latest")
+ * @returns Promise that resolves when deletion is complete
+ */
+export async function deleteConnection(
+  landscapeId: string,
+  connectionId: string,
+  versionId: string = "latest"
+): Promise<void> {
+  await apiRequest(
+    `/landscapes/${landscapeId}/versions/${versionId}/model/connections/${connectionId}`,
     {
       method: "DELETE",
     }

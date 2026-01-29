@@ -209,3 +209,42 @@ export interface UpdateModelObjectRequest {
   teamOnlyEditing?: boolean;
   technologyIds?: string[];
 }
+
+/**
+ * Request body for creating a model connection
+ */
+export interface CreateConnectionRequest {
+  name: string;
+  originId: string;
+  targetId: string;
+  direction: 'outgoing' | 'bidirectional' | null;
+  description?: string;
+  status?: 'deprecated' | 'future' | 'live' | 'removed';
+  labels?: Record<string, string>;
+  links?: Record<string, { name: string; url: string }>;
+  tagIds?: string[];
+  technologyIds?: string[];
+  viaId?: string | null;
+  handleId?: string;
+}
+
+/**
+ * Request body for updating a model connection (all fields optional)
+ */
+export interface UpdateConnectionRequest {
+  name?: string;
+  direction?: 'outgoing' | 'bidirectional' | null;
+  description?: string;
+  status?: 'deprecated' | 'future' | 'live' | 'removed';
+  labels?: Record<string, string>;
+  links?: Record<string, { name: string; url: string }>;
+  tagIds?: string[];
+  technologyIds?: string[];
+}
+
+/**
+ * Response for single model connection
+ */
+export interface ModelConnectionResponse {
+  modelConnection: ModelConnection;
+}
