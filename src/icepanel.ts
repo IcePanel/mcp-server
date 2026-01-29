@@ -7,10 +7,21 @@ import type {
   ModelObjectResponse, 
   CatalogTechnologyResponse, 
   TeamsResponse, 
+  TeamResponse,
   ModelConnectionsResponse,
   ModelConnectionResponse,
   CreateModelObjectRequest,
   UpdateModelObjectRequest,
+  CreateConnectionRequest,
+  UpdateConnectionRequest,
+  CreateTeamRequest,
+  UpdateTeamRequest,
+  CreateTagRequest,
+  UpdateTagRequest,
+  TagResponse,
+  CreateDomainRequest,
+  UpdateDomainRequest,
+  DomainResponse,
 } from "./types.js";
 
 // Base URL for the IcePanel API
@@ -444,5 +455,154 @@ export async function deleteModelObject(
     {
       method: "DELETE",
     }
+  );
+}
+
+// ============================================================================
+// Connection Write Operations
+// ============================================================================
+
+export async function createConnection(
+  landscapeId: string,
+  data: CreateConnectionRequest,
+  versionId: string = "latest"
+): Promise<ModelConnectionResponse> {
+  return apiRequest<ModelConnectionResponse>(
+    `/landscapes/${landscapeId}/versions/${versionId}/model/connections`,
+    { method: "POST", body: JSON.stringify(data) }
+  );
+}
+
+export async function updateConnection(
+  landscapeId: string,
+  connectionId: string,
+  data: UpdateConnectionRequest,
+  versionId: string = "latest"
+): Promise<ModelConnectionResponse> {
+  return apiRequest<ModelConnectionResponse>(
+    `/landscapes/${landscapeId}/versions/${versionId}/model/connections/${connectionId}`,
+    { method: "PATCH", body: JSON.stringify(data) }
+  );
+}
+
+export async function deleteConnection(
+  landscapeId: string,
+  connectionId: string,
+  versionId: string = "latest"
+): Promise<void> {
+  await apiRequest(
+    `/landscapes/${landscapeId}/versions/${versionId}/model/connections/${connectionId}`,
+    { method: "DELETE" }
+  );
+}
+
+// ============================================================================
+// Team Write Operations
+// ============================================================================
+
+export async function createTeam(
+  organizationId: string,
+  data: CreateTeamRequest
+): Promise<TeamResponse> {
+  return apiRequest<TeamResponse>(
+    `/organizations/${organizationId}/teams`,
+    { method: "POST", body: JSON.stringify(data) }
+  );
+}
+
+export async function updateTeam(
+  organizationId: string,
+  teamId: string,
+  data: UpdateTeamRequest
+): Promise<TeamResponse> {
+  return apiRequest<TeamResponse>(
+    `/organizations/${organizationId}/teams/${teamId}`,
+    { method: "PATCH", body: JSON.stringify(data) }
+  );
+}
+
+export async function deleteTeam(
+  organizationId: string,
+  teamId: string
+): Promise<void> {
+  await apiRequest(
+    `/organizations/${organizationId}/teams/${teamId}`,
+    { method: "DELETE" }
+  );
+}
+
+// ============================================================================
+// Tag Write Operations
+// ============================================================================
+
+export async function createTag(
+  landscapeId: string,
+  data: CreateTagRequest,
+  versionId: string = "latest"
+): Promise<TagResponse> {
+  return apiRequest<TagResponse>(
+    `/landscapes/${landscapeId}/versions/${versionId}/tags`,
+    { method: "POST", body: JSON.stringify(data) }
+  );
+}
+
+export async function updateTag(
+  landscapeId: string,
+  tagId: string,
+  data: UpdateTagRequest,
+  versionId: string = "latest"
+): Promise<TagResponse> {
+  return apiRequest<TagResponse>(
+    `/landscapes/${landscapeId}/versions/${versionId}/tags/${tagId}`,
+    { method: "PATCH", body: JSON.stringify(data) }
+  );
+}
+
+export async function deleteTag(
+  landscapeId: string,
+  tagId: string,
+  versionId: string = "latest"
+): Promise<void> {
+  await apiRequest(
+    `/landscapes/${landscapeId}/versions/${versionId}/tags/${tagId}`,
+    { method: "DELETE" }
+  );
+}
+
+// ============================================================================
+// Domain Write Operations
+// ============================================================================
+
+export async function createDomain(
+  landscapeId: string,
+  data: CreateDomainRequest,
+  versionId: string = "latest"
+): Promise<DomainResponse> {
+  return apiRequest<DomainResponse>(
+    `/landscapes/${landscapeId}/versions/${versionId}/domains`,
+    { method: "POST", body: JSON.stringify(data) }
+  );
+}
+
+export async function updateDomain(
+  landscapeId: string,
+  domainId: string,
+  data: UpdateDomainRequest,
+  versionId: string = "latest"
+): Promise<DomainResponse> {
+  return apiRequest<DomainResponse>(
+    `/landscapes/${landscapeId}/versions/${versionId}/domains/${domainId}`,
+    { method: "PATCH", body: JSON.stringify(data) }
+  );
+}
+
+export async function deleteDomain(
+  landscapeId: string,
+  domainId: string,
+  versionId: string = "latest"
+): Promise<void> {
+  await apiRequest(
+    `/landscapes/${landscapeId}/versions/${versionId}/domains/${domainId}`,
+    { method: "DELETE" }
   );
 }
