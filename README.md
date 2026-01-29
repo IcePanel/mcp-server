@@ -43,15 +43,15 @@ Please use MCP Servers with caution; only install tools you trust.
 - `API_KEY`: Your IcePanel API key (required)
 - `ORGANIZATION_ID`: Your IcePanel organization ID (required)
 - `ICEPANEL_API_BASE_URL`: (Optional) Override the API base URL for different environments
-- `MCP_TRANSPORT`: (Optional) Transport type: `stdio` (default) or `sse`
-- `MCP_PORT`: (Optional) HTTP port for SSE transport (default: 3000)
+- `MCP_TRANSPORT`: (Optional) Transport type: `stdio` (default) or `http`
+- `MCP_PORT`: (Optional) HTTP port for Streamable HTTP transport (default: 3000)
 
 #### CLI Flags
 
 When running directly or via Docker, you can use these flags:
 
-- `--transport <stdio|sse>`: Transport type (overrides `MCP_TRANSPORT`)
-- `--port <number>`: HTTP port for SSE transport (overrides `MCP_PORT`)
+- `--transport <stdio|http>`: Transport type (overrides `MCP_TRANSPORT`)
+- `--port <number>`: HTTP port for HTTP transport (overrides `MCP_PORT`)
 
 #### Configure your MCP Client
 
@@ -107,35 +107,49 @@ Add this to your MCP Clients' MCP config file:
 }
 ```
 
-### Run with HTTP/SSE Transport
+### Run with Streamable HTTP Transport
 
-For standalone HTTP server mode, use the `--transport sse` flag:
+For standalone HTTP server mode, use the `--transport http` flag:
 
 ```bash
 docker run -d -p 9846:9846 \
   -e API_KEY="your-api-key" \
   -e ORGANIZATION_ID="your-org-id" \
-  icepanel-mcp-server --transport sse --port 9846
+  icepanel-mcp-server --transport http --port 9846
 ```
 
 The server exposes:
-- `GET /sse` - SSE endpoint for establishing connection
-- `POST /messages` - Endpoint for client messages
+- `GET/POST/DELETE /mcp` - Main MCP endpoint (Streamable HTTP)
 - `GET /health` - Health check endpoint
 
-### Configure MCP Client for HTTP/SSE
+### Configure MCP Client for Streamable HTTP
 
-For MCP clients that support HTTP/SSE transport:
+For MCP clients that support HTTP transport:
 
 ```json
 {
   "mcpServers": {
     "@icepanel/icepanel": {
-      "url": "http://localhost:9846/sse"
+      "url": "http://localhost:9846/mcp"
     }
   }
 }
 ```
+
+## 🔄 Transport Options
+
+This server supports two transport mechanisms:
+
+### stdio (default)
+- Standard input/output transport
+- Used when MCP client spawns the server process directly
+- Best for: Local development, npx usage, per-user deployments
+
+### Streamable HTTP
+- Single endpoint HTTP transport (`/mcp`)
+- Supports both request/response and streaming modes
+- Best for: Docker deployments, shared servers, enterprise environments
+- Replaces the deprecated SSE transport (MCP spec 2025-03-26)
 
 ## ✉️ Support
 

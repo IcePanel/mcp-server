@@ -43,13 +43,13 @@ COPY --from=builder /app/bin ./bin
 #   ORGANIZATION_ID - Your IcePanel organization ID
 # Optional:
 #   ICEPANEL_API_BASE_URL - Override API base URL
-#   MCP_TRANSPORT - Transport type: 'stdio' (default) or 'sse'
-#   MCP_PORT - HTTP port for SSE transport (default: 3000)
+#   MCP_TRANSPORT - Transport type: 'stdio' (default) or 'http'
+#   MCP_PORT - HTTP port for Streamable HTTP transport (default: 3000)
 
-# Default port for SSE transport (can be overridden with --port flag)
+# Default port for HTTP transport (can be overridden with --port flag)
 EXPOSE 3000
 
 # Run the MCP server
-# Supports CLI flags: --transport <stdio|sse> --port <number>
-# Example: docker run -p 3000:3000 ... icepanel-mcp-server --transport sse --port 3000
+# Supports CLI flags: --transport <stdio|http> --port <number>
+# Example: docker run -p 3000:3000 ... icepanel-mcp-server --transport http --port 3000
 ENTRYPOINT ["node", "bin/icepanel-mcp-server.js"]
