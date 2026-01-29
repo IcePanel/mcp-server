@@ -18,7 +18,7 @@ process.argv.slice(2).forEach(arg => {
   }
 });
 
-import('../dist/main.js').catch(err => {
+import('../dist/index.js').catch(err => {
   console.error('Failed to start IcePanel MCP Server:', err);
   process.exit(1);
 });

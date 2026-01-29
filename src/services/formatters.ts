@@ -1,4 +1,5 @@
-import type { CatalogTechnology, ModelConnection, ModelObject, Team } from "./types.js";
+import type { CatalogTechnology, ModelConnection, ModelObject } from "../types.js";
+import { MODEL_OBJECT_DESCRIPTION_MAX_LENGTH } from "../constants.js";
 
 /**
  * Converts text and URL into a markdown link.
@@ -7,18 +8,17 @@ import type { CatalogTechnology, ModelConnection, ModelObject, Team } from "./ty
  * @returns A string formatted as a markdown link.
  */
 export function toMarkdownLink(text: string, url: string): string {
-    return `[${text}](${url})`;
+  return `[${text}](${url})`;
 }
 
 export const BASE_PATH = process.env.ICEPANEL_APP_BASE_URL || "https://app.icepanel.io";
 
-
 export const modelObjectUrl = (landscapeId: string, modelObjectHandle: string): string => {
-  return `${BASE_PATH}/landscapes/${landscapeId}/versions/latest/model/objects?object_tab=details&object=${modelObjectHandle}`
-}
+  return `${BASE_PATH}/landscapes/${landscapeId}/versions/latest/model/objects?object_tab=details&object=${modelObjectHandle}`;
+};
 
 export const formatModelObjectListItem = (landscapeId: string, modelObject: ModelObject): string => {
-  let formatString = '';
+  let formatString = "";
 
   if (modelObject.name) {
     formatString += `# ${modelObject.name}\n`;
@@ -28,19 +28,17 @@ export const formatModelObjectListItem = (landscapeId: string, modelObject: Mode
     formatString += `- ID: ${modelObject.id}\n`;
   }
 
-  if (modelObject.name) {
-    formatString += `- Name: ${modelObject.name}\n`;
-  }
-
   if (modelObject.description) {
-   formatString += `- Description: \n`
-   const maxLength = 150;
-   let truncatedDescription = modelObject.description;
-   if (truncatedDescription.length > maxLength) {
-     const lastSpaceIndex = truncatedDescription.lastIndexOf(' ', maxLength);
-     truncatedDescription = truncatedDescription.slice(0, lastSpaceIndex > 0 ? lastSpaceIndex : maxLength);
-   }
-   formatString += `${truncatedDescription}...\n`
+    formatString += "- Description: \n";
+    const maxLength = MODEL_OBJECT_DESCRIPTION_MAX_LENGTH;
+    let truncatedDescription = modelObject.description;
+    let isTruncated = false;
+    if (truncatedDescription.length > maxLength) {
+      const lastSpaceIndex = truncatedDescription.lastIndexOf(" ", maxLength);
+      truncatedDescription = truncatedDescription.slice(0, lastSpaceIndex > 0 ? lastSpaceIndex : maxLength);
+      isTruncated = true;
+    }
+    formatString += `${truncatedDescription}${isTruncated ? "..." : ""}\n`;
   }
 
   if (modelObject.type) {
@@ -56,10 +54,10 @@ export const formatModelObjectListItem = (landscapeId: string, modelObject: Mode
   }
 
   return formatString;
-}
+};
 
 export const formatModelObjectRelatedItem = (modelObject: ModelObject): string => {
-  let formatString = '';
+  let formatString = "";
 
   if (modelObject.name) {
     formatString += `##### ${modelObject.name}\n`;
@@ -67,10 +65,6 @@ export const formatModelObjectRelatedItem = (modelObject: ModelObject): string =
 
   if (modelObject.id) {
     formatString += `- ID: ${modelObject.id}\n`;
-  }
-
-  if (modelObject.name) {
-    formatString += `- Name: ${modelObject.name}\n`;
   }
 
   if (modelObject.type) {
@@ -82,10 +76,15 @@ export const formatModelObjectRelatedItem = (modelObject: ModelObject): string =
   }
 
   return formatString;
-}
+};
 
-export const formatModelObjectItem = (landscapeId: string, modelObject: ModelObject, teams: Team[], parentObject?: ModelObject, childObjects?: ModelObject[]): string => {
-  let formatString = '';
+export const formatModelObjectItem = (
+  landscapeId: string,
+  modelObject: ModelObject,
+  parentObject?: ModelObject,
+  childObjects?: ModelObject[]
+): string => {
+  let formatString = "";
 
   if (modelObject.name) {
     formatString += `# ${modelObject.name}\n`;
@@ -93,10 +92,6 @@ export const formatModelObjectItem = (landscapeId: string, modelObject: ModelObj
 
   if (modelObject.id) {
     formatString += `- ID: ${modelObject.id}\n`;
-  }
-
-  if (modelObject.name) {
-    formatString += `- Name: ${modelObject.name}\n`;
   }
 
   formatString += `- View in IcePanel: ${modelObjectUrl(landscapeId, modelObject.handleId)}\n`;
@@ -118,40 +113,36 @@ export const formatModelObjectItem = (landscapeId: string, modelObject: ModelObj
   }
 
   if (modelObject.links && Object.keys(modelObject.links).length > 0) {
-    formatString += `- Links:\n`;
+    formatString += "- Links:\n";
     for (const [_, link] of Object.entries(modelObject.links)) {
       formatString += `  - [${link.customName || link.name || link.id}](${link.url})\n`;
     }
   }
 
   if (modelObject.technologies && Object.values(modelObject.technologies).length > 0) {
-    formatString += `- Technologies: ${Object.values(modelObject.technologies).map(t => t.name).join(", ")}\n`;
-  }
-
-  if (modelObject.teamIds && modelObject.teamIds.length > 0) {
-    formatString += `- Teams: ${modelObject.teamIds.map(teamId => teams.find(t => t.id === teamId)?.name).filter(it => !!it).join(', ')}\n`;
+    formatString += `- Technologies: ${Object.values(modelObject.technologies)
+      .map((t) => t.name)
+      .join(", ")}\n`;
   }
 
   if (parentObject) {
-    formatString += `### Parent Object\n\n`
-    formatString += formatModelObjectRelatedItem(parentObject) + '\n\n'
+    formatString += "### Parent Object\n\n";
+    formatString += `${formatModelObjectRelatedItem(parentObject)}\n\n`;
   }
 
   if (childObjects) {
-    formatString += `### Child Objects\n\n`
-    formatString += childObjects.map(o => formatModelObjectRelatedItem(o)).join('\n\n')
+    formatString += "### Child Objects\n\n";
+    formatString += childObjects.map((o) => formatModelObjectRelatedItem(o)).join("\n\n");
   }
 
   return formatString;
-}
+};
 
 export const formatCatalogTechnology = (technology: CatalogTechnology) => {
-  let formatString = '';
+  let formatString = "";
 
   formatString += `# ${technology.name}\n\n`;
-  formatString += `- Name: ${technology.name}\n`;
   formatString += `- ID: ${technology.id}\n`;
-
 
   if (technology.nameShort) {
     formatString += `- Short Name: ${technology.nameShort}\n`;
@@ -162,11 +153,11 @@ export const formatCatalogTechnology = (technology: CatalogTechnology) => {
   }
 
   if (technology.docsUrl) {
-    formatString += `- Documentation: ${toMarkdownLink('Docs', technology.docsUrl)}\n`;
+    formatString += `- Documentation: ${toMarkdownLink("Docs", technology.docsUrl)}\n`;
   }
 
   if (technology.websiteUrl) {
-    formatString += `- Website: ${toMarkdownLink('Website', technology.websiteUrl)}\n`;
+    formatString += `- Website: ${toMarkdownLink("Website", technology.websiteUrl)}\n`;
   }
 
   if (technology.status) {
@@ -190,70 +181,58 @@ export const formatCatalogTechnology = (technology: CatalogTechnology) => {
   }
 
   return formatString;
-}
+};
 
+export const formatConnections = (
+  modelObject: ModelObject,
+  incomingConnections: ModelConnection[],
+  outgoingConnections: ModelConnection[],
+  modelObjects: ModelObject[]
+) => {
+  const formatModelLabel = (model: ModelObject): string => {
+    const name = model.name || model.handleId || model.id || "Unknown model object";
+    const type = model.type ? ` (${model.type})` : "";
+    return `${name}${type}`;
+  };
 
-export const formatTeam = (team: Team): string => {
-  let formatString = '';
-
-  if (team.name) {
-    formatString += `# ${team.name}\n`;
-  }
-
-  if (team.id) {
-    formatString += `- ID: ${team.id}\n`;
-  }
-
-  if (team.name) {
-      formatString += `- Name: ${team.name}\n`;
-    }
-
-  if (team.userIds && team.userIds.length > 0) {
-    formatString += `- Team size: ${team.userIds.length}\n`;
-  }
-
-  return formatString;
-}
-
-export const formatConnections = (modelObject: ModelObject, incomingConnections: ModelConnection[], outgoingConnections: ModelConnection[], modelObjects: ModelObject[]) => {
-  let formatString = '';
-  formatString += `# ${modelObject.name} - Connections\n\n`;
+  let formatString = "";
+  formatString += `# ${formatModelLabel(modelObject)} - Connections\n\n`;
 
   if (!incomingConnections.length && !outgoingConnections.length) {
-    formatString += `No connections found.\n`
+    formatString += "No connections found.\n";
   }
 
   const referencedModels: ModelObject[] = [];
 
   if (incomingConnections.length) {
-    formatString += `### Incoming connections\n`
-    const connectionString = incomingConnections.map(c => {
-      const connectedModel = modelObjects.find(o => o.id === c.originId)
+    formatString += "### Incoming connections\n";
+    const connectionString = incomingConnections.map((c) => {
+      const connectedModel = modelObjects.find((o) => o.id === c.originId);
       if (!connectedModel) {
-        return ''
+        return "";
       }
       referencedModels.push(connectedModel);
-      return `${connectedModel.name} (${connectedModel.type}) -[${c.name}]-> ${modelObject.name} (${modelObject.type})`
-    })
-    formatString += connectionString.join('\n')
+      return `${formatModelLabel(connectedModel)} -[${c.name}]-> ${formatModelLabel(modelObject)}`;
+    });
+    formatString += connectionString.join("\n");
   }
 
   if (outgoingConnections.length) {
-    formatString += `### Outgoing connections\n`
-    const connectionString = outgoingConnections.map(c => {
-      const connectedModel = modelObjects.find(o => o.id === c.targetId)
+    formatString += "### Outgoing connections\n";
+    const connectionString = outgoingConnections.map((c) => {
+      const connectedModel = modelObjects.find((o) => o.id === c.targetId);
       if (!connectedModel) {
-        return ''
+        return "";
       }
       referencedModels.push(connectedModel);
-      return `${modelObject.name} (${modelObject.type}) -[${c.name}]-> ${connectedModel.name} (${connectedModel.type})`
-    })
-    formatString += connectionString.join('\n')
+      return `${formatModelLabel(modelObject)} -[${c.name}]-> ${formatModelLabel(connectedModel)}`;
+    });
+    formatString += connectionString.join("\n");
   }
 
   if (referencedModels.length) {
-    formatString += `### Referenced Model Objects`
-    formatString += referencedModels.map(o => formatModelObjectRelatedItem(o)).join('\n')
+    formatString += "### Referenced Model Objects";
+    formatString += referencedModels.map((o) => formatModelObjectRelatedItem(o)).join("\n");
   }
-  return formatString
-}
+  return formatString;
+};
