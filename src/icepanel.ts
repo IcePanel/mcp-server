@@ -2,7 +2,7 @@
  * IcePanel API client
  */
 
-import type { ModelObjectsResponse, ModelObjectResponse, CatalogTechnologyResponse, TeamsResponse, ModelConnectionsResponse } from "./types.js";
+import type { ModelObjectsResponse, ModelObjectResponse, CatalogTechnologyResponse, TeamsResponse, ModelConnectionsResponse, ModelConnectionResponse } from "./types.js";
 
 // Base URL for the IcePanel API
 // Use environment variable if set, otherwise default to production URL
@@ -306,6 +306,6 @@ export async function getModelConnections(
 /**
  * Get a specific connection
  */
-export async function getConnection(landscapeId: string, versionId: string, connectionId: string) {
-  return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}/model/connections/${connectionId}`);
+export async function getConnection(landscapeId: string, versionId: string, connectionId: string): Promise<ModelConnectionResponse> {
+  return apiRequest(`/landscapes/${landscapeId}/versions/${versionId}/model/connections/${connectionId}`) as Promise<ModelConnectionResponse>;
 }

@@ -17,12 +17,12 @@ export interface ModelObject {
   links: Record<string, any>;
   name: string;
   parentId: string;
-  status: 'deprecated';
+  status: 'deprecated' | 'future' | 'live' | 'removed';
   tagIds: string[];
   teamIds: string[];
   teamOnlyEditing: boolean;
   technologyIds: string[];
-  type: 'actor';
+  type: 'actor' | 'app' | 'component' | 'group' | 'root' | 'store' | 'system';
   domainId: string;
   handleId: string;
   childDiagramIds: string[];
@@ -162,4 +162,8 @@ export interface ModelConnection {
 
 export interface ModelConnectionsResponse {
   modelConnections: ModelConnection[];
+}
+
+export interface ModelConnectionResponse {
+  modelConnection: ModelConnection;
 }

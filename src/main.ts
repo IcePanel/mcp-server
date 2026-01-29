@@ -41,6 +41,7 @@ server.tool(
       };
     } catch (error: any) {
       return {
+        isError: true,
         content: [{ type: "text", text: `Error: ${error.message}` }],
       };
     }
@@ -62,6 +63,7 @@ server.tool(
       };
     } catch (error: any) {
       return {
+        isError: true,
         content: [{ type: "text", text: `Error: ${error.message}` }],
       };
     }
@@ -126,6 +128,7 @@ Prefer filtering by Technology ID and Team ID when the query is asking things li
       };
     } catch (error: any) {
       return {
+        isError: true,
         content: [{ type: "text", text: `Error: ${error.message}` }],
       };
     }
@@ -167,6 +170,7 @@ server.tool(
       };
     } catch (error: any) {
       return {
+        isError: true,
         content: [{ type: "text", text: `Error: ${error.message}` }],
       };
     }
@@ -214,6 +218,7 @@ server.tool(
       }
     } catch (error: any) {
       return {
+        isError: true,
         content: [{ type: "text", text: `Error: ${error.message}` }],
       };
     }
@@ -256,6 +261,7 @@ server.tool(
       };
     } catch (error: any) {
       return {
+        isError: true,
         content: [{ type: "text", text: `Error: ${error.message}` }],
       };
     }
@@ -293,6 +299,7 @@ server.tool(
       }
     } catch (error: any) {
       return {
+        isError: true,
         content: [{ type: 'text', text: `Error: ${error.message}`}]
       }
     }
