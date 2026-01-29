@@ -490,6 +490,156 @@ Error Handling:
   }
 );
 
+// ============================================================================
+// Domain Write Tools
+// ============================================================================
+
+server.tool(
+  'icepanel_create_domain',
+  `Create a new domain in IcePanel.
+
+This tool CREATES a new domain in a landscape. Domains are used to organize model objects into logical groupings (e.g., bounded contexts, business areas).
+
+Args:
+  - landscapeId (string): The landscape ID (20 characters)
+  - name (string): Domain name (1-255 characters)
+  - color (string, optional): Hex color code for the domain (e.g., "#FF5733")
+
+Returns:
+  The created domain with its new ID.
+
+Examples:
+  - Create domain: landscapeId="...", name="Order Management"
+  - Create with color: landscapeId="...", name="Payments", color="#4CAF50"
+
+Use Cases:
+  - Bounded contexts in DDD
+  - Business capability areas
+  - Team ownership boundaries
+
+Error Handling:
+  - Returns error if landscapeId doesn't exist
+  - Returns error if API key lacks write permission`,
+  {
+    landscapeId: z.string().length(20).describe("The landscape ID"),
+    name: z.string().min(1).max(255).describe("Domain name"),
+    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional().describe("Hex color code"),
+  },
+  async (params) => {
+    try {
+      const { landscapeId, ...data } = params;
+      const result = await icepanel.createDomain(landscapeId, data);
+      const domain = result.domain;
+      return {
+        content: [{ 
+          type: "text", 
+          text: `# Domain Created Successfully\n\n- **ID**: ${domain.id}\n- **Name**: ${domain.name}\n- **Color**: ${domain.color || 'default'}` 
+        }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: handleApiError(error) }],
+      };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_update_domain',
+  `Update an existing domain in IcePanel.
+
+This tool MODIFIES an existing domain. Only provided fields will be updated.
+
+Args:
+  - landscapeId (string): The landscape ID (20 characters)
+  - domainId (string): The domain ID to update (20 characters)
+  - name (string, optional): New domain name
+  - color (string, optional): New hex color code
+
+Returns:
+  The updated domain.
+
+Examples:
+  - Update name: domainId="...", name="New Domain Name"
+  - Update color: domainId="...", color="#00FF00"
+
+Error Handling:
+  - Returns error if domainId doesn't exist
+  - Returns error if API key lacks write permission`,
+  {
+    landscapeId: z.string().length(20).describe("The landscape ID"),
+    domainId: z.string().length(20).describe("The domain ID to update"),
+    name: z.string().min(1).max(255).optional().describe("New domain name"),
+    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional().describe("New hex color code"),
+  },
+  async (params) => {
+    try {
+      const { landscapeId, domainId, ...data } = params;
+      const updateData = Object.fromEntries(
+        Object.entries(data).filter(([_, v]) => v !== undefined)
+      );
+      const result = await icepanel.updateDomain(landscapeId, domainId, updateData);
+      const domain = result.domain;
+      return {
+        content: [{ 
+          type: "text", 
+          text: `# Domain Updated Successfully\n\n- **ID**: ${domain.id}\n- **Name**: ${domain.name}\n- **Color**: ${domain.color || 'default'}` 
+        }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: handleApiError(error) }],
+      };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_delete_domain',
+  `Delete a domain from IcePanel.
+
+⚠️ WARNING: This action PERMANENTLY DELETES the domain and cannot be undone.
+
+This tool removes a domain from a landscape. Model objects in this domain will have their domainId cleared.
+
+Args:
+  - landscapeId (string): The landscape ID (20 characters)
+  - domainId (string): The domain ID to delete (20 characters)
+
+Returns:
+  Confirmation message on successful deletion.
+
+Considerations:
+  - Model objects in this domain will have their domainId cleared
+  - This action cannot be undone - verify the ID before proceeding
+
+Error Handling:
+  - Returns error if domainId doesn't exist
+  - Returns error if API key lacks write permission`,
+  {
+    landscapeId: z.string().length(20).describe("The landscape ID"),
+    domainId: z.string().length(20).describe("The domain ID to delete"),
+  },
+  async ({ landscapeId, domainId }) => {
+    try {
+      await icepanel.deleteDomain(landscapeId, domainId);
+      return {
+        content: [{ 
+          type: "text", 
+          text: `# Domain Deleted\n\nSuccessfully deleted domain (ID: ${domainId}).` 
+        }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: handleApiError(error) }],
+      };
+    }
+  }
+);
+
 // Get transport configuration from CLI (set by bin/icepanel-mcp-server.js)
 const transportType = process.env._MCP_TRANSPORT || 'stdio';
 const port = parseInt(process.env._MCP_PORT || '3000', 10);

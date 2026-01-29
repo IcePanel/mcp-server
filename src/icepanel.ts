@@ -10,6 +10,9 @@ import type {
   ModelConnectionsResponse,
   CreateModelObjectRequest,
   UpdateModelObjectRequest,
+  CreateDomainRequest,
+  UpdateDomainRequest,
+  DomainResponse,
 } from "./types.js";
 
 // Base URL for the IcePanel API
@@ -440,6 +443,77 @@ export async function deleteModelObject(
 ): Promise<void> {
   await apiRequest(
     `/landscapes/${landscapeId}/versions/${versionId}/model/objects/${modelObjectId}`,
+    {
+      method: "DELETE",
+    }
+  );
+}
+
+// ============================================================================
+// Domain Write Operations
+// ============================================================================
+
+/**
+ * Create a new domain
+ * 
+ * @param landscapeId - The landscape ID
+ * @param data - The domain data to create
+ * @param versionId - The version ID (defaults to "latest")
+ * @returns Promise with the created domain
+ */
+export async function createDomain(
+  landscapeId: string,
+  data: CreateDomainRequest,
+  versionId: string = "latest"
+): Promise<DomainResponse> {
+  return apiRequest<DomainResponse>(
+    `/landscapes/${landscapeId}/versions/${versionId}/domains`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+/**
+ * Update an existing domain
+ * 
+ * @param landscapeId - The landscape ID
+ * @param domainId - The domain ID to update
+ * @param data - The fields to update
+ * @param versionId - The version ID (defaults to "latest")
+ * @returns Promise with the updated domain
+ */
+export async function updateDomain(
+  landscapeId: string,
+  domainId: string,
+  data: UpdateDomainRequest,
+  versionId: string = "latest"
+): Promise<DomainResponse> {
+  return apiRequest<DomainResponse>(
+    `/landscapes/${landscapeId}/versions/${versionId}/domains/${domainId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+/**
+ * Delete a domain
+ * 
+ * @param landscapeId - The landscape ID
+ * @param domainId - The domain ID to delete
+ * @param versionId - The version ID (defaults to "latest")
+ * @returns Promise that resolves when deletion is complete
+ */
+export async function deleteDomain(
+  landscapeId: string,
+  domainId: string,
+  versionId: string = "latest"
+): Promise<void> {
+  await apiRequest(
+    `/landscapes/${landscapeId}/versions/${versionId}/domains/${domainId}`,
     {
       method: "DELETE",
     }

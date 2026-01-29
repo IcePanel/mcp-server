@@ -209,3 +209,42 @@ export interface UpdateModelObjectRequest {
   teamOnlyEditing?: boolean;
   technologyIds?: string[];
 }
+
+/**
+ * Domain entity
+ */
+export interface Domain {
+  id: string;
+  name: string;
+  color?: string;
+  landscapeId: string;
+  createdAt: string;
+  createdBy: string;
+  createdById: string;
+  updatedAt: string;
+  updatedBy: string;
+  updatedById: string;
+}
+
+/**
+ * Request body for creating a domain
+ */
+export interface CreateDomainRequest {
+  name: string;
+  color?: string;
+}
+
+/**
+ * Request body for updating a domain
+ */
+export interface UpdateDomainRequest {
+  name?: string;
+  color?: string;
+}
+
+/**
+ * Response for single domain
+ */
+export interface DomainResponse {
+  domain: Domain;
+}
