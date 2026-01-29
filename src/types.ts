@@ -17,12 +17,12 @@ export interface ModelObject {
   links: Record<string, any>;
   name: string;
   parentId: string;
-  status: 'deprecated';
+  status: 'deprecated' | 'future' | 'live' | 'removed';
   tagIds: string[];
   teamIds: string[];
   teamOnlyEditing: boolean;
   technologyIds: string[];
-  type: 'actor';
+  type: 'actor' | 'app' | 'component' | 'group' | 'root' | 'store' | 'system';
   domainId: string;
   handleId: string;
   childDiagramIds: string[];
@@ -164,48 +164,6 @@ export interface ModelConnectionsResponse {
   modelConnections: ModelConnection[];
 }
 
-// ============================================================================
-// Write Operation Types
-// ============================================================================
-
-/**
- * Request body for creating a model object
- */
-export interface CreateModelObjectRequest {
-  name: string;
-  parentId: string;
-  type: 'actor' | 'app' | 'component' | 'group' | 'store' | 'system';
-  caption?: string;
-  description?: string;
-  external?: boolean;
-  status?: 'deprecated' | 'future' | 'live' | 'removed';
-  groupIds?: string[];
-  labels?: Record<string, string>;
-  links?: Record<string, { name: string; url: string }>;
-  tagIds?: string[];
-  teamIds?: string[];
-  teamOnlyEditing?: boolean;
-  technologyIds?: string[];
-  domainId?: string;
-  handleId?: string;
-}
-
-/**
- * Request body for updating a model object (all fields optional)
- */
-export interface UpdateModelObjectRequest {
-  name?: string;
-  parentId?: string | null;
-  type?: 'actor' | 'app' | 'component' | 'group' | 'store' | 'system';
-  caption?: string;
-  description?: string;
-  external?: boolean;
-  status?: 'deprecated' | 'future' | 'live' | 'removed';
-  groupIds?: string[];
-  labels?: Record<string, string>;
-  links?: Record<string, { name: string; url: string }>;
-  tagIds?: string[];
-  teamIds?: string[];
-  teamOnlyEditing?: boolean;
-  technologyIds?: string[];
+export interface ModelConnectionResponse {
+  modelConnection: ModelConnection;
 }
