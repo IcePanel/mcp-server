@@ -7,9 +7,12 @@ import type {
   ModelObjectResponse, 
   CatalogTechnologyResponse, 
   TeamsResponse, 
+  TeamResponse,
   ModelConnectionsResponse,
   CreateModelObjectRequest,
   UpdateModelObjectRequest,
+  CreateTeamRequest,
+  UpdateTeamRequest,
 } from "./types.js";
 
 // Base URL for the IcePanel API
@@ -440,6 +443,71 @@ export async function deleteModelObject(
 ): Promise<void> {
   await apiRequest(
     `/landscapes/${landscapeId}/versions/${versionId}/model/objects/${modelObjectId}`,
+    {
+      method: "DELETE",
+    }
+  );
+}
+
+// ============================================================================
+// Team Write Operations
+// ============================================================================
+
+/**
+ * Create a new team
+ * 
+ * @param organizationId - The organization ID
+ * @param data - The team data to create
+ * @returns Promise with the created team
+ */
+export async function createTeam(
+  organizationId: string,
+  data: CreateTeamRequest
+): Promise<TeamResponse> {
+  return apiRequest<TeamResponse>(
+    `/organizations/${organizationId}/teams`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+/**
+ * Update an existing team
+ * 
+ * @param organizationId - The organization ID
+ * @param teamId - The team ID to update
+ * @param data - The fields to update
+ * @returns Promise with the updated team
+ */
+export async function updateTeam(
+  organizationId: string,
+  teamId: string,
+  data: UpdateTeamRequest
+): Promise<TeamResponse> {
+  return apiRequest<TeamResponse>(
+    `/organizations/${organizationId}/teams/${teamId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+/**
+ * Delete a team
+ * 
+ * @param organizationId - The organization ID
+ * @param teamId - The team ID to delete
+ * @returns Promise that resolves when deletion is complete
+ */
+export async function deleteTeam(
+  organizationId: string,
+  teamId: string
+): Promise<void> {
+  await apiRequest(
+    `/organizations/${organizationId}/teams/${teamId}`,
     {
       method: "DELETE",
     }

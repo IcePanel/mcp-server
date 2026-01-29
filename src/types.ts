@@ -209,3 +209,26 @@ export interface UpdateModelObjectRequest {
   teamOnlyEditing?: boolean;
   technologyIds?: string[];
 }
+
+/**
+ * Request body for creating a team
+ */
+export interface CreateTeamRequest {
+  name: string;
+  color?: string;
+}
+
+/**
+ * Request body for updating a team (all fields optional)
+ */
+export interface UpdateTeamRequest {
+  name?: string;
+  color?: string;
+}
+
+/**
+ * Response for single team
+ */
+export interface TeamResponse {
+  team: Team;
+}

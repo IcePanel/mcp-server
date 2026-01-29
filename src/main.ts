@@ -490,6 +490,149 @@ Error Handling:
   }
 );
 
+// ============================================================================
+// Team Write Tools
+// ============================================================================
+
+server.tool(
+  'icepanel_create_team',
+  `Create a new team in IcePanel.
+
+This tool CREATES a new team in your organization. Teams can be assigned to model objects as owners.
+
+Args:
+  - name (string): Team name (1-255 characters)
+  - color (string, optional): Hex color code for the team (e.g., "#FF5733")
+
+Returns:
+  The created team with its new ID.
+
+Examples:
+  - Create team: name="Platform Team"
+  - Create with color: name="Security Team", color="#FF0000"
+
+Error Handling:
+  - Returns error if team name already exists
+  - Returns error if API key lacks write permission`,
+  {
+    name: z.string().min(1).max(255).describe("Team name"),
+    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional().describe("Hex color code (e.g., #FF5733)"),
+  },
+  async (params) => {
+    try {
+      const result = await icepanel.createTeam(ORGANIZATION_ID!, params);
+      const team = result.team;
+      return {
+        content: [{ 
+          type: "text", 
+          text: `# Team Created Successfully\n\n- **ID**: ${team.id}\n- **Name**: ${team.name}\n- **Color**: ${team.color || 'default'}` 
+        }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: handleApiError(error) }],
+      };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_update_team',
+  `Update an existing team in IcePanel.
+
+This tool MODIFIES an existing team. Only provided fields will be updated.
+
+Args:
+  - teamId (string): The team ID to update (20 characters)
+  - name (string, optional): New team name
+  - color (string, optional): New hex color code
+
+Returns:
+  The updated team.
+
+Examples:
+  - Update name: teamId="...", name="New Team Name"
+  - Update color: teamId="...", color="#00FF00"
+
+Error Handling:
+  - Returns error if teamId doesn't exist
+  - Returns error if API key lacks write permission`,
+  {
+    teamId: z.string().length(20).describe("The team ID to update"),
+    name: z.string().min(1).max(255).optional().describe("New team name"),
+    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional().describe("New hex color code"),
+  },
+  async (params) => {
+    try {
+      const { teamId, ...data } = params;
+      const updateData = Object.fromEntries(
+        Object.entries(data).filter(([_, v]) => v !== undefined)
+      );
+      const result = await icepanel.updateTeam(ORGANIZATION_ID!, teamId, updateData);
+      const team = result.team;
+      return {
+        content: [{ 
+          type: "text", 
+          text: `# Team Updated Successfully\n\n- **ID**: ${team.id}\n- **Name**: ${team.name}\n- **Color**: ${team.color || 'default'}` 
+        }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: handleApiError(error) }],
+      };
+    }
+  }
+);
+
+server.tool(
+  'icepanel_delete_team',
+  `Delete a team from IcePanel.
+
+⚠️ WARNING: This action PERMANENTLY DELETES the team and cannot be undone.
+
+This tool removes a team from your organization. Model objects owned by this team will no longer have this team assigned.
+
+Args:
+  - teamId (string): The team ID to delete (20 characters)
+
+Returns:
+  Confirmation message on successful deletion.
+
+Considerations:
+  - Model objects owned by this team will have the team removed from their teamIds
+  - This action cannot be undone - verify the ID before proceeding
+
+Error Handling:
+  - Returns error if teamId doesn't exist
+  - Returns error if API key lacks write permission`,
+  {
+    teamId: z.string().length(20).describe("The team ID to delete"),
+  },
+  async ({ teamId }) => {
+    try {
+      // First get the teams to find the name
+      const teamsResult = await icepanel.getTeams(ORGANIZATION_ID!);
+      const team = teamsResult.teams.find(t => t.id === teamId);
+      const teamName = team?.name || 'Unknown';
+      
+      await icepanel.deleteTeam(ORGANIZATION_ID!, teamId);
+      return {
+        content: [{ 
+          type: "text", 
+          text: `# Team Deleted\n\nSuccessfully deleted team "${teamName}" (ID: ${teamId}).` 
+        }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: handleApiError(error) }],
+      };
+    }
+  }
+);
+
 // Get transport configuration from CLI (set by bin/icepanel-mcp-server.js)
 const transportType = process.env._MCP_TRANSPORT || 'stdio';
 const port = parseInt(process.env._MCP_PORT || '3000', 10);
