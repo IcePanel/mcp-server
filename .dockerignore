@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build output (will be built in container)
+dist/
+
+# Git
+.git/
+.gitignore
+
+# Environment files (secrets should be passed at runtime)
+.env
+.env.*
+!.env.example
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Test files
+*.test.ts
+*.spec.ts
+__tests__/
+coverage/
+
+# Documentation (not needed in image)
+*.md
+!README.md
+
+# Misc
+.aider*
+*.tgz
+CODEOWNERS
+
