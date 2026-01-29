@@ -5,6 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import * as icepanel from "./icepanel.js";
 import { formatCatalogTechnology, formatConnections, formatModelObjectItem, formatModelObjectListItem, formatTeam } from "./format.js";
+import { startHttpServer } from "./http-server.js";
 import Fuse from 'fuse.js';
 
 // Get API key and organization ID from environment variables
@@ -24,7 +25,7 @@ if (!ORGANIZATION_ID) {
 // Create an MCP server
 const server = new McpServer({
   name: "IcePanel MCP Server",
-  version: "0.1.1",
+  version: "0.2.0",
 });
 
 // Get all landscapes
@@ -299,6 +300,16 @@ server.tool(
 
 )
 
-// Start receiving messages on stdin and sending messages on stdout
-const transport = new StdioServerTransport();
-await server.connect(transport);
+// Get transport configuration from CLI (set by bin/icepanel-mcp-server.js)
+const transportType = process.env._MCP_TRANSPORT || 'stdio';
+const port = parseInt(process.env._MCP_PORT || '3000', 10);
+
+// Start the server with the appropriate transport
+if (transportType === 'http') {
+  // Start HTTP server with Streamable HTTP transport
+  await startHttpServer(server, port);
+} else {
+  // Default: Start with stdio transport
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+}
