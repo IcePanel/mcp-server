@@ -25,7 +25,7 @@ if (!ORGANIZATION_ID) {
 // Create an MCP server
 const server = new McpServer({
   name: "IcePanel MCP Server",
-  version: "0.1.1",
+  version: "0.2.0",
 });
 
 // Get all landscapes
@@ -305,8 +305,8 @@ const transportType = process.env._MCP_TRANSPORT || 'stdio';
 const port = parseInt(process.env._MCP_PORT || '3000', 10);
 
 // Start the server with the appropriate transport
-if (transportType === 'sse') {
-  // Start HTTP server with SSE transport
+if (transportType === 'http') {
+  // Start HTTP server with Streamable HTTP transport
   await startHttpServer(server, port);
 } else {
   // Default: Start with stdio transport

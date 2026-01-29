@@ -7,12 +7,12 @@
  * - API_KEY: Your IcePanel API key (required)
  * - ORGANIZATION_ID: Your IcePanel organization ID (required)
  * - ICEPANEL_API_BASE_URL: (Optional) Override the API base URL for different environments
- * - MCP_TRANSPORT: Transport type: 'stdio' (default) or 'sse'
- * - MCP_PORT: HTTP server port for SSE transport (default: 3000)
+ * - MCP_TRANSPORT: Transport type: 'stdio' (default) or 'http'
+ * - MCP_PORT: HTTP server port for HTTP transport (default: 3000)
  *
  * CLI flags:
- * - --transport <stdio|sse>: Transport type (overrides MCP_TRANSPORT)
- * - --port <number>: HTTP port for SSE transport (overrides MCP_PORT)
+ * - --transport <stdio|http>: Transport type (overrides MCP_TRANSPORT)
+ * - --port <number>: HTTP port for HTTP transport (overrides MCP_PORT)
  */
 
 // Parse command line arguments
@@ -45,9 +45,15 @@ for (let i = 0; i < args.length; i++) {
   }
 }
 
+// Support legacy 'sse' transport name (map to 'http')
+if (transport === 'sse') {
+  console.warn("Warning: 'sse' transport is deprecated. Using 'http' (Streamable HTTP) instead.");
+  transport = 'http';
+}
+
 // Validate transport
-if (!['stdio', 'sse'].includes(transport)) {
-  console.error(`Invalid transport: ${transport}. Must be 'stdio' or 'sse'.`);
+if (!['stdio', 'http'].includes(transport)) {
+  console.error(`Invalid transport: ${transport}. Must be 'stdio' or 'http'.`);
   process.exit(1);
 }
 
