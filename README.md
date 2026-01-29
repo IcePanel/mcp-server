@@ -37,6 +37,8 @@ Use `command` + `args` to launch the server locally (shown above).
 
 For MCP clients that support HTTP transport:
 
+This mode is intended for localhost-only usage on your machine. If you choose to expose it beyond localhost, you must secure it yourself (for example, with a reverse proxy, authentication, and network controls).
+
 ```json
 {
   "mcpServers": {
@@ -91,6 +93,12 @@ All tools follow the `icepanel_*` naming convention and return structured output
 - `MCP_TRANSPORT`: `stdio` (default) or `http`
 - `MCP_PORT`: HTTP port for Streamable HTTP transport (default: 3000)
 
+### Transport configuration precedence
+
+- `--transport` / `--port` CLI flags override `MCP_TRANSPORT` / `MCP_PORT`
+- `MCP_TRANSPORT` / `MCP_PORT` are honored when running `src/index.ts` directly
+- If using the CLI wrapper, those values are forwarded to the server automatically
+
 ## How to Run Integration Tests
 
 Use this guide to run the live integration tests against your IcePanel org.
@@ -98,7 +106,7 @@ Use this guide to run the live integration tests against your IcePanel org.
 ### Prerequisites
 
 - A valid IcePanel API key
-- A landscape in your org (for example, `Alex's landscape`)
+- A target landscape name or ID provided via test environment variables
 
 ### Steps
 
@@ -126,7 +134,7 @@ export ICEPANEL_MCP_TAG_GROUP_ID="your-tag-group-id"
 4. Run the suite:
 
 ```bash
-pnpm test
+ICEPANEL_MCP_TEST_LANDSCAPE_NAME="your-landscape-name" pnpm test
 ```
 
 ### Notes
@@ -198,7 +206,7 @@ Add this to your MCP Clients' MCP config file:
 For standalone HTTP server mode, use the `--transport http` flag:
 
 ```bash
-docker run -d -p 9846:9846 \
+docker run -d -p 127.0.0.1:9846:9846 \
   -e API_KEY="your-api-key" \
   -e ORGANIZATION_ID="your-org-id" \
   icepanel-mcp-server --transport http --port 9846

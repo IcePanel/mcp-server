@@ -10,7 +10,8 @@ const hasCredentials = Boolean(
   (process.env.API_KEY || process.env.ICEPANEL_MCP_API_KEY) &&
     (process.env.ORGANIZATION_ID || process.env.ICEPANEL_MCP_ORGANIZATION_ID)
 );
-const TARGET_LANDSCAPE_NAME = process.env.ICEPANEL_MCP_TEST_LANDSCAPE_NAME || "Alex's landscape";
+const TARGET_LANDSCAPE_NAME = process.env.ICEPANEL_MCP_TEST_LANDSCAPE_NAME;
+const TARGET_LANDSCAPE_ID = process.env.ICEPANEL_MCP_TEST_LANDSCAPE_ID;
 
 const organizationId =
   process.env.ORGANIZATION_ID || (process.env.ICEPANEL_MCP_ORGANIZATION_ID as string);
@@ -18,7 +19,12 @@ const organizationId =
 async function detectWriteAccess(): Promise<boolean> {
   const started = await startTestServer(organizationId);
   try {
-    const landscapeId = await resolveLandscapeId(started.baseUrl, TARGET_LANDSCAPE_NAME);
+    if (!TARGET_LANDSCAPE_NAME && !TARGET_LANDSCAPE_ID) {
+      throw new Error(
+        "Set ICEPANEL_MCP_TEST_LANDSCAPE_NAME or ICEPANEL_MCP_TEST_LANDSCAPE_ID for integration tests"
+      );
+    }
+    const landscapeId = await resolveLandscapeId(started.baseUrl, TARGET_LANDSCAPE_NAME || "");
     const probeName = `Test MCP Write Probe ${Date.now()}`;
     const createResult = await callTool(started.baseUrl, "icepanel_create_domain", {
       landscapeId,
@@ -62,7 +68,12 @@ integrationDescribe("MCP write tools (integration)", () => {
     const started = await startTestServer(organizationId);
     baseUrl = started.baseUrl;
     closeServer = started.close;
-    landscapeId = await resolveLandscapeId(baseUrl, TARGET_LANDSCAPE_NAME);
+    if (!TARGET_LANDSCAPE_NAME && !TARGET_LANDSCAPE_ID) {
+      throw new Error(
+        "Set ICEPANEL_MCP_TEST_LANDSCAPE_NAME or ICEPANEL_MCP_TEST_LANDSCAPE_ID for integration tests"
+      );
+    }
+    landscapeId = await resolveLandscapeId(baseUrl, TARGET_LANDSCAPE_NAME || "");
   });
 
   afterAll(async () => {

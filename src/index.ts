@@ -25,9 +25,9 @@ const server = new McpServer({
 
 registerAllTools(server, ORGANIZATION_ID);
 
-// Get transport configuration from CLI (set by bin/icepanel-mcp-server.js)
-const transportType = process.env._MCP_TRANSPORT || "stdio";
-const portRaw = process.env._MCP_PORT || "3000";
+// Get transport configuration from CLI (set by bin/icepanel-mcp-server.js) or env
+const transportType = process.env._MCP_TRANSPORT || process.env.MCP_TRANSPORT || "stdio";
+const portRaw = process.env._MCP_PORT || process.env.MCP_PORT || "3000";
 const port = Number.parseInt(portRaw, 10);
 
 if (!Number.isInteger(port) || port < 1 || port > 65535) {

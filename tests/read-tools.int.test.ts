@@ -11,7 +11,8 @@ const hasCredentials = Boolean(
   (process.env.API_KEY || process.env.ICEPANEL_MCP_API_KEY) &&
     (process.env.ORGANIZATION_ID || process.env.ICEPANEL_MCP_ORGANIZATION_ID)
 );
-const TARGET_LANDSCAPE_NAME = process.env.ICEPANEL_MCP_TEST_LANDSCAPE_NAME || "Alex's landscape";
+const TARGET_LANDSCAPE_NAME = process.env.ICEPANEL_MCP_TEST_LANDSCAPE_NAME;
+const TARGET_LANDSCAPE_ID = process.env.ICEPANEL_MCP_TEST_LANDSCAPE_ID;
 
 const integrationDescribe = hasCredentials ? describe : describe.skip;
 
@@ -22,13 +23,18 @@ integrationDescribe("MCP read tools (integration)", () => {
   let modelObjectId: string | null = null;
 
   beforeAll(async () => {
+    if (!TARGET_LANDSCAPE_NAME && !TARGET_LANDSCAPE_ID) {
+      throw new Error(
+        "Set ICEPANEL_MCP_TEST_LANDSCAPE_NAME or ICEPANEL_MCP_TEST_LANDSCAPE_ID for integration tests"
+      );
+    }
     const organizationId =
       process.env.ORGANIZATION_ID || (process.env.ICEPANEL_MCP_ORGANIZATION_ID as string);
     const started = await startTestServer(organizationId);
     baseUrl = started.baseUrl;
     closeServer = started.close;
 
-    landscapeId = await resolveLandscapeId(baseUrl, TARGET_LANDSCAPE_NAME);
+    landscapeId = await resolveLandscapeId(baseUrl, TARGET_LANDSCAPE_NAME || "");
     const modelObjectIds = await getModelObjectIds(baseUrl, landscapeId, 1);
     modelObjectId = modelObjectIds[0] ?? null;
   });

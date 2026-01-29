@@ -27,11 +27,11 @@ import { applyCharacterLimit, formatOutput, paginateArray } from "./utils.js";
 const IdOrIdsSchema = z.union([IcePanelIdSchema, z.array(IcePanelIdSchema)]);
 const MutableModelObjectTypeSchema = z.enum(["actor", "app", "component", "group", "store", "system"]);
 
-const ListModelObjectsSchema = z
+export const ListModelObjectsSchema = z
   .object({
     landscapeId: IcePanelIdSchema,
     domainId: IdOrIdsSchema.optional(),
-    external: z.boolean().optional().default(false),
+    external: z.boolean().optional(),
     name: z.string().optional(),
     parentId: z.string().nullable().optional(),
     status: z.union([StatusSchema, z.array(StatusSchema)]).optional(),

@@ -85,6 +85,9 @@ export async function resolveLandscapeId(baseUrl: string, landscapeName: string)
   if (process.env.ICEPANEL_MCP_TEST_LANDSCAPE_ID) {
     return process.env.ICEPANEL_MCP_TEST_LANDSCAPE_ID;
   }
+  if (!landscapeName.trim()) {
+    throw new Error("Set ICEPANEL_MCP_TEST_LANDSCAPE_NAME or ICEPANEL_MCP_TEST_LANDSCAPE_ID");
+  }
 
   const listResult = await callTool(baseUrl, "icepanel_list_landscapes", {
     response_format: "json",
